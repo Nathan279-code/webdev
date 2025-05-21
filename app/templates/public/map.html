@@ -1,0 +1,82 @@
+<div id="map" style="height: 100vh; width: 100%;"></div>
+<!-- Leaflet JS, à la fin du body -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+<script>
+    const map = L.map('map');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Géolocalisation utilisateur avec haute précision
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            // Centrer la carte
+            map.setView([lat, lon], 15);
+
+            // Marqueur utilisateur
+            L.marker([lat, lon])
+                .addTo(map)
+                .bindPopup("Vous êtes ici")
+                .openPopup();
+
+            // Cercle de précision
+            L.circle([lat, lon], {
+                radius: accuracy,
+                color: 'blue',
+                fillColor: '#aaddff',
+                fillOpacity: 0.3
+            }).addTo(map);
+
+        }, () => {
+            alert("Impossible de récupérer votre position.");
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    } else {
+        alert("La géolocalisation n'est pas supportée par votre navigateur.");
+    }
+
+     // Ajouter les établissements depuis l'API
+     fetch('/api/etablissements')
+        .then(res => res.json())
+        .then(etabs => {
+            let delay = 0;
+            etabs.forEach((etab, i) => {
+                const adresse = `${etab.adresse}, ${etab.cp} ${etab.ville}`;
+                if (!adresse) return;
+
+                setTimeout(() => {
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(adresse)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.length > 0) {
+                                const lat = data[0].lat;
+                                const lon = data[0].lon;
+
+                                L.marker([lat, lon])
+                                    .addTo(map)
+                                    .bindPopup(`
+                                        <strong>${etab.nom}</strong><br>
+                                        ${adresse}<br>
+                                        <a href="/etablissement/${etab.id}">Voir la fiche</a>
+                                    `);
+                            }
+                        })
+                        .catch(err => console.error("Erreur géocodage :", err));
+                }, delay);
+                delay += 1000;
+            });
+        })
+        .catch(err => console.error("Erreur chargement établissements :", err));
+</script>
+</script>

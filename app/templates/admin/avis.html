@@ -1,0 +1,64 @@
+{% extends 'admin/menu.html' %}
+
+{% block title %}Liste des Avis{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Liste des avis</h1>
+
+    <!-- Bouton Ajouter -->
+    <div class="mb-3">
+        <a href="{{ url_for('main.ajouter_avis_form') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Ajouter un avis
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Note</th>
+                        <th scope="col">Commentaire</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">ID Utilisateur</th>
+                        <th scope="col">Nom Utilisateur</th>
+                        <th scope="col">ID Établissement</th>
+                        <th scope="col">Nom Établissement</th>
+                        <th scope="col" style="width: 130px;">Actions</th> <!-- Colonne Actions -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in avis %}
+                    <tr>
+                        <td>{{ a.idav }}</td>
+                        <td>{{ a.note }}</td>
+                        <td>{{ a.commentaire }}</td>
+                        <td>{{ a.datecreation }}</td>
+                        <td>{{ a.iduser }}</td>
+                        <td>{{ a.nomuser }}</td>
+                        <td>{{ a.idetab }}</td>
+                        <td>{{ a.nometab }}</td>
+                        <td>
+                            <a href="{{ url_for('main.modifier_avis_form', idav=a.idav) }}" 
+                               class="btn btn-sm btn-outline-warning" title="Modifier">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="{{ url_for('main.supprimer_avis_form', idav=a.idav) }}" 
+                               class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center table-dark">Aucun avis trouvé.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

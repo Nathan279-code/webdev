@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Menu Public{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Leaflet CSS (juste l'inclure ici) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+</head>
+<body>
+    <div class="d-flex vh-100">
+        <!-- Sidebar gauche -->
+        <nav class="bg-light border-end p-3" style="width: 300px;">
+            <h4>Recherche d'établissement</h4>
+            <input
+                type="text"
+                id="search-input"
+                class="form-control"
+                placeholder="Rechercher un établissement..."
+                autocomplete="off"
+            />
+            <ul class="list-group mt-2 overflow-auto" style="max-height: 300px;" id="results-list"></ul>
+
+            <div class="mt-4" id="etab-details" style="display: none;">
+                <h5 id="etab-nom"></h5>
+                <p id="etab-adresse"></p>
+                <p id="etab-ville"></p>
+                <p>Téléphone : <span id="etab-tel"></span></p>
+                <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
+                <button class="btn btn-primary" id="btn-ajouter-avis">Ajouter un avis</button>
+            </div>
+        </nav>
+
+        <!-- Contenu principal à droite : inclusion de la carte -->
+        <main class="flex-grow-1 p-0" style="height: 100vh;">
+            {% include 'public/map.html' %}
+        </main>
+    </div>
+
+    <a href="{{ url_for('auth.login') }}" class="btn btn-success position-fixed bottom-0 start-0 m-3">Se connecter</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Ton script JS pour la recherche et affichage établissements -->
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const resultsList = document.getElementById('results-list');
+        const etabDetails = document.getElementById('etab-details');
+        const etabNom = document.getElementById('etab-nom');
+        const etabAdresse = document.getElementById('etab-adresse');
+        const etabVille = document.getElementById('etab-ville');
+        const etabTel = document.getElementById('etab-tel');
+        const etabSiteweb = document.getElementById('etab-siteweb');
+        const btnAjouterAvis = document.getElementById('btn-ajouter-avis');
+
+        let selectedEtabId = null;
+
+        searchInput.addEventListener('input', async () => {
+            const query = searchInput.value.trim();
+            resultsList.innerHTML = '';
+            etabDetails.style.display = 'none';
+
+            if (query.length < 2) return;
+
+            const response = await fetch(`/api/etablissements/search?q=${encodeURIComponent(query)}`);
+            const etablissements = await response.json();
+
+            if (etablissements.length === 0) {
+                resultsList.innerHTML = '<li class="list-group-item">Aucun résultat</li>';
+                return;
+            }
+
+            etablissements.forEach(etab => {
+                const li = document.createElement('li');
+                li.textContent = etab.nom;
+                li.classList.add('list-group-item', 'list-group-item-action');
+                li.style.cursor = 'pointer';
+                li.addEventListener('click', () => {
+                    selectedEtabId = etab.id;
+                    showEtablissementDetails(etab);
+                    resultsList.innerHTML = '';
+                    searchInput.value = etab.nom;
+                });
+                resultsList.appendChild(li);
+            });
+        });
+
+        function showEtablissementDetails(etab) {
+            etabNom.textContent = etab.nom;
+            etabAdresse.textContent = `Adresse : ${etab.adresse}`;
+            etabVille.textContent = `Ville : ${etab.ville} (${etab.cp})`;
+            etabTel.textContent = etab.tel;
+            etabSiteweb.textContent = etab.siteweb;
+            etabSiteweb.href = etab.siteweb;
+            etabDetails.style.display = 'block';
+        }
+
+        btnAjouterAvis.addEventListener('click', () => {
+            if (!selectedEtabId) {
+                alert('Veuillez sélectionner un établissement.');
+                return;
+            }
+            window.location.href = `/avis/ajouter/${selectedEtabId}`;
+        });
+    </script>
+</body>
+</html>

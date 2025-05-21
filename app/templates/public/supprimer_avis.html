@@ -1,0 +1,20 @@
+<!-- supprimer_avis.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supprimer un Avis</title>
+</head>
+<body>
+    <h1>Supprimer un Avis</h1>
+    <form action="/avis/supprimer/{{ avis.idav }}" method="POST">
+        <p>Êtes-vous sûr de vouloir supprimer l'avis suivant ?</p>
+        <p><strong>ID Avis:</strong> {{ avis.idav }}</p>
+        <p><strong>Commentaire:</strong> {{ avis.commentaire }}</p>
+        <p><strong>Note:</strong> {{ avis.note }}</p>
+        
+        <button type="submit">Supprimer</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{% extends 'admin/menu.html' %}
+
+{% block title %}Liste des Catégories{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Liste des catégories</h1>
+
+    <!-- Bouton Ajouter -->
+    <div class="mb-3">
+        <a href="{{ url_for('main.categorie_ajouter_form') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Ajouter une catégorie
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">ID Catégorie</th>
+                        <th scope="col">Nom de la catégorie</th>
+                        <th scope="col" style="width: 130px;">Actions</th> <!-- Colonne Actions -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categorie %}
+                    <tr>
+                        <td>{{ cat.idcat }}</td>
+                        <td>{{ cat.nomcat }}</td>
+                        <td>
+                            <a href="{{ url_for('main.categorie_modifier_form', idcat=cat.idcat) }}" 
+                               class="btn btn-sm btn-outline-warning" title="Modifier">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a href="{{ url_for('main.categorie_supprimer_form', idcat=cat.idcat) }}" 
+                               class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center table-dark">Aucune catégorie trouvée.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

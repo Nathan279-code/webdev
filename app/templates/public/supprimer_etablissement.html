@@ -1,0 +1,17 @@
+<!-- templates/supprimer_etablissement.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer un établissement</title>
+</head>
+<body>
+    <h1>Supprimer l’établissement {{ etab.nometab }}</h1>
+    <p>Êtes-vous sûr de vouloir supprimer cet établissement ?</p>
+
+    <form action="/etablissement/supprimer/{{ etab.idetab }}" method="post">
+        <button type="submit">Oui, supprimer</button>
+    </form>
+    <a href="/">Annuler</a>
+</body>
+</html>

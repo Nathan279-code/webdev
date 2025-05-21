@@ -1,0 +1,30 @@
+<!-- modifier_avis.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier un Avis</title>
+</head>
+<body>
+    <h1>Modifier un Avis</h1>
+    <form action="/avis/modifier/{{ avis.idav }}" method="POST">
+        <label for="note">Note:</label>
+        <input type="number" id="note" name="note" step="1" min="0" max="5" value="{{ avis.note }}" required><br><br>
+
+        <label for="commentaire">Commentaire:</label>
+        <textarea id="commentaire" name="commentaire" rows="4" cols="50" required>{{ avis.commentaire }}</textarea><br><br>
+
+        <label for="datecreation">Date de Création:</label>
+        <input type="date" id="datecreation" name="datecreation" value="{{ avis.datecreation }}" required><br><br>
+
+        <label for="iduser">ID Utilisateur:</label>
+        <input type="text" id="iduser" name="iduser" value="{{ avis.iduser_Utilisateur }}" required><br><br>
+
+        <label for="idetab">ID Etablissement:</label>
+        <input type="text" id="idetab" name="idetab" value="{{ avis.idetab_Etablissement }}" required><br><br>
+
+        <button type="submit">Modifier</button>
+    </form>
+</body>
+</html>

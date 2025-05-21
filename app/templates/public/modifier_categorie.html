@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier une catégorie</title>
+</head>
+<body>
+    <h1>Modifier la catégorie "{{ categorie.nomcat }}"</h1>
+    <form action="/categorie/modifier/{{ categorie.idcat }}" method="POST">
+        <label for="idcat">ID Catégorie :</label>
+        <input type="text" id="idcat" name="idcat" value="{{ categorie.idcat }}" readonly><br><br>
+
+        <label for="nomcat">Nom de la catégorie :</label>
+        <input type="text" id="nomcat" name="nomcat" value="{{ categorie.nomcat }}" required><br><br>
+
+        <button type="submit">Modifier</button>
+    </form>
+</body>
+</html>

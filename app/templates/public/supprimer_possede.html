@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supprimer la relation Possède</title>
+</head>
+<body>
+    <h1>Supprimer la relation Possède</h1>
+
+    <p>Êtes-vous sûr de vouloir supprimer cette relation ?</p>
+
+    <p><strong>Catégorie :</strong> {{ possede.idcat }}</p>
+    <p><strong>Établissement :</strong> {{ possede.idetab }}</p>
+
+    <form action="{{ url_for('main.supprimer_possede', idcat=possede.idcat, idetab=possede.idetab) }}" method="POST">
+        <button type="submit">Supprimer</button>
+    </form>
+
+    <a href="{{ url_for('main.home') }}">Retour à l'accueil</a>
+</body>
+</html>

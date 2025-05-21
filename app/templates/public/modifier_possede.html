@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier la relation Possède</title>
+</head>
+<body>
+    <h1>Modifier la relation Possède</h1>
+
+    <form action="{{ url_for('main.modifier_possede', idcat=possede.idcat, idetab=possede.idetab) }}" method="POST">
+        <label for="idcat">Catégorie :</label>
+        <select name="idcat" id="idcat" required>
+            {% for categorie in categories %}
+                <option value="{{ categorie.idcat }}" {% if categorie.idcat == possede.idcat %}selected{% endif %}>
+                    {{ categorie.nom }}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="idetab">Établissement :</label>
+        <select name="idetab" id="idetab" required>
+            {% for etablissement in etablissements %}
+                <option value="{{ etablissement.idetab }}" {% if etablissement.idetab == possede.idetab %}selected{% endif %}>
+                    {{ etablissement.nom }}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit">Modifier</button>
+    </form>
+
+    <a href="{{ url_for('main.home') }}">Retour à l'accueil</a>
+</body>
+</html>

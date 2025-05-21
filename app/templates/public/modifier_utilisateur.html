@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier un utilisateur</title>
+</head>
+<body>
+    <h1>Modifier l'utilisateur : {{ utilisateur.username }}</h1>
+    <form action="/utilisateur/modifier/{{ utilisateur.iduser }}" method="POST">
+        <label for="iduser">ID Utilisateur :</label>
+        <input type="text" id="iduser" name="iduser" value="{{ utilisateur.iduser }}" disabled><br><br>
+
+        <label for="username">Nom d'utilisateur :</label>
+        <input type="text" id="username" name="username" value="{{ utilisateur.username }}" required><br><br>
+
+        <label for="emailuser">Email :</label>
+        <input type="email" id="emailuser" name="emailuser" value="{{ utilisateur.emailuser }}" required><br><br>
+
+        <label for="mdpuser">Mot de passe :</label>
+        <input type="password" id="mdpuser" name="mdpuser" placeholder="Laisser vide pour garder le mot de passe"><br><br>
+
+
+        <label for="admin">Administrateur :</label>
+        <input type="checkbox" id="admin" name="admin"{% if utilisateur.admin %}checked{% endif %}><br><br>
+
+        <button type="submit">Modifier</button>
+    </form>
+</body>
+</html>

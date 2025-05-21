@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer un utilisateur</title>
+</head>
+<body>
+    <h1>Confirmer la suppression de l'utilisateur : {{ utilisateur.username }}</h1>
+    <form action="/utilisateur/supprimer/{{ utilisateur.iduser }}" method="POST">
+        <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+        <button type="submit">Oui, supprimer</button><br><br>
+        <a href="/utilisateurs">Non, annuler</a>
+    </form>
+</body>
+</html>

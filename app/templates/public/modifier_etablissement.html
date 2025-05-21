@@ -1,0 +1,42 @@
+<!-- templates/modifier_etablissement.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier un établissement</title>
+</head>
+<body>
+    <h1>Modifier l’établissement {{ etab.nometab }}</h1>
+    <form action="/etablissement/modifier/{{ etab.idetab }}" method="post">
+        <label>Nom :</label><br>
+        <input type="text" name="nometab" value="{{ etab.nometab }}" required><br>
+
+        <label>Adresse :</label><br>
+        <input type="text" name="adetab" value="{{ etab.adetab }}" required><br>
+
+        <label>Ville :</label><br>
+        <input type="text" name="villeetab" value="{{ etab.villeetab }}" required><br>
+
+        <label>Code Postal :</label><br>
+        <input type="text" name="cpetab" value="{{ etab.cpetab }}" required><br>
+
+        <label>Téléphone :</label><br>
+        <input type="text" name="teletab" value="{{ etab.teletab }}" required><br>
+
+        <label>Site Web :</label><br>
+        <input type="text" name="sitewebetab" value="{{ etab.sitewebetab }}" required><br>
+
+        <label>Catégorie :</label><br>
+        <select name="idcat" required>
+            {% for cat in categories %}
+                <option value="{{ cat.idcat }}" {% if cat.idcat == etab.idcat %}selected{% endif %}>
+                    {{ cat.nomcat }}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+
+        <button type="submit">Mettre à jour</button>
+    </form>
+</body>
+</html>

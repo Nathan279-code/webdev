@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer une catégorie</title>
+</head>
+<body>
+    <h1>Voulez-vous vraiment supprimer la catégorie "{{ categorie.nomcat }}" ?</h1>
+    <form action="/categorie/supprimer/{{ categorie.idcat }}" method="POST">
+        <button type="submit">Supprimer</button>
+    </form>
+    <a href="/categories">Annuler</a>
+</body>
+</html>

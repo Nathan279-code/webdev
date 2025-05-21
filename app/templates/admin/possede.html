@@ -1,0 +1,43 @@
+{% extends 'admin/menu.html' %}
+
+{% block title %}Liste des Relations Possède{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Liste des relations <em>Possède</em></h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID Catégorie</th>
+                        <th>Nom de la Catégorie</th>
+                        <th>ID Établissement</th>
+                        <th>Nom de l'Établissement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rel in possede %}
+                    <tr>
+                        <td>{{ rel.idcat }}</td>
+                        <td>{{ rel.nomcat }}</td>
+                        <td>{{ rel.idetab }}</td>
+                        <td>{{ rel.nometab }}</td>
+                        <td>
+                            <a href="{{ url_for('main.possede_modifier_form', idcat=rel.idcat, idetab=rel.idetab) }}" class="btn btn-sm btn-primary">Modifier</a>
+                            <a href="{{ url_for('main.possede_supprimer_form', idcat=rel.idcat, idetab=rel.idetab) }}" class="btn btn-sm btn-danger">Supprimer</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center table-dark">Aucune relation trouvée.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{{ url_for('main.possede_ajouter_form') }}" class="btn btn-success mt-3">Ajouter une relation</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
