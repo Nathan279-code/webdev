@@ -29,11 +29,10 @@
         <label>Catégorie :</label><br>
         <select name="idcat" required>
             {% for cat in categories %}
-                <option value="{{ cat.idcat }}" {% if cat.idcat == etab.idcat %}selected{% endif %}>
-                    {{ cat.nomcat }}
-                </option>
+                <option value="{{ cat.idcat }}">{{ cat.nomcat }}</option>
             {% endfor %}
-        </select><br><br>
+        </select>
+        <br><br>
 
 
         <button type="submit">Ajouter</button>

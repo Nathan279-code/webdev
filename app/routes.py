@@ -9,7 +9,7 @@ main = Blueprint('main', __name__)
 @main.route("/")
 def home():
     etablissements = Etablissement.get_all_json()
-    return render_template("public/map.html", etablissements=etablissements)
+    return render_template("public/menu.html", etablissements=etablissements)
 
 # --- Menu public ---
 @main.route('/public/menu')
