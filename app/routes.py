@@ -1,32 +1,48 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
 from app.models.models import Utilisateur, Etablissement, Categorie, Avis, Possede
+from flask_login import login_user, logout_user, login_required, current_user
+
 
 main = Blueprint('main', __name__)
 
+@main.context_processor
+def inject_user():
+    return dict(current_user=current_user)
 # --- ETABLISSEMENTS ---
 
 # Page d'accueil affichant la carte avec tous les établissements
 @main.route("/")
 def home():
     etablissements = Etablissement.get_all_json()
-    return render_template("public/menu.html", etablissements=etablissements)
+    categories = Categorie.get_all_json_raw()
+    return render_template("public/menu.html", etablissements=etablissements, categories=categories)
 
 # --- Menu public ---
 @main.route('/public/menu')
 def menu_public():
-    return render_template('public/menu.html')
+    categories = Categorie.get_all_json_raw()
+    return render_template('public/menu.html', categories=categories)
 
 # --- Menu admin ---
 @main.route('/menu')
+@login_required
 def menu():
+    if not current_user.admin:
+        flash("Accès refusé", "error")
+        return redirect(url_for('main.menu_public'))
     return render_template('admin/menu.html')
 
 # Blueprint auth
 auth = Blueprint('auth', __name__, url_prefix='/auth')
 
+@auth.context_processor
+def inject_user():
+    return dict(current_user=current_user)
+
 @auth.route('/login')
 def login():
     return render_template('auth/login.html')
+
 
 # Récupère tous les établissements (format JSON si besoin)
 #@main.route("/etablissements", methods=["GET"])
@@ -100,7 +116,15 @@ def search_etablissements():
 def api_etablissements():
     return jsonify(Etablissement.get_all_json())  # ou get_all_json_raw() si c'est mieux
 
-
+@main.route('/api/etablissements/filter')
+def filter_etablissements():
+    # On récupère la liste des catégories (peut être plusieurs)
+    categories = request.args.getlist('category')
+    if not categories:
+        return jsonify([])
+    # On récupère les établissements filtrés
+    etablissements = Etablissement.get_by_categories(categories)
+    return jsonify(etablissements)
 
 
 # --- UTILISATEURS ---
@@ -166,9 +190,7 @@ def login_submit():
     password = request.form.get('password')
     user = Utilisateur.authenticate(username, password)
     if user:
-        session['user_id'] = user.iduser
-        session['username'] = user.username
-        session['is_admin'] = user.admin
+        login_user(user)
         if user.admin:
             return redirect(url_for('main.menu'))
         else:
@@ -177,10 +199,34 @@ def login_submit():
         error = "Identifiants invalides"
         return render_template('auth/login.html', error=error)
 
-@main.route('/logout')
+@auth.route('/logout')
+@login_required
 def logout():
-    session.clear()  # Supprime toutes les données de session
-    return redirect(url_for('main.login_form'))  # Redirige vers la page de login
+    logout_user()  # Supprime toutes les données de session
+    flash("Déconnexion réussie.", "info")
+    return redirect(url_for('main.menu_public'))  # Redirige vers la page de login
+
+@auth.route('/register', methods=['GET'])
+def register():
+    return render_template('auth/register.html')
+
+@auth.route('/register', methods=['POST'])
+def register_post():
+    data = request.form.to_dict()
+
+    # Vérifications pour username et email déjà pris
+    if Utilisateur.query.filter_by(username=data.get('username')).first():
+        flash("Nom d'utilisateur déjà pris.", "error")
+        return render_template('auth/register.html')
+
+    if Utilisateur.query.filter_by(emailuser=data.get('emailuser')).first():
+        flash("Email déjà utilisé.", "error")
+        return render_template('auth/register.html')
+
+    # Création utilisateur
+    Utilisateur.create_from_json(data)
+    flash("Inscription réussie, veuillez vous connecter.", "success")
+    return redirect(url_for('auth.login'))
 
 
 # --- CATEGORIES ---

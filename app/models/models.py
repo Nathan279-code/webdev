@@ -1,6 +1,6 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from flask_login import UserMixin
 
 def generate_custom_id(model_class, prefix, id_field):
     last_item = model_class.query.order_by(getattr(model_class, id_field).desc()).first()
@@ -20,7 +20,7 @@ def generate_custom_id(model_class, prefix, id_field):
     return f"{prefix}{new_id_num:04d}"
 
 
-class Utilisateur(db.Model):
+class Utilisateur(db.Model, UserMixin):
     iduser = db.Column(db.String(6), primary_key=True)
     username = db.Column(db.String(50), nullable=False)
     emailuser = db.Column(db.String(90), nullable=False)
@@ -29,6 +29,11 @@ class Utilisateur(db.Model):
 
     avis = db.relationship("Avis", backref="utilisateur", lazy=True)
 
+
+    def get_id(self):
+        # Flask-Login utilise cette méthode pour récupérer l’identifiant utilisateur
+        return self.iduser
+    
     # Convertit l'objet Utilisateur en dictionnaire (pour JSON)
     def to_dict(self):
         return {
@@ -222,6 +227,11 @@ class Etablissement(db.Model):
         results = Etablissement.query.filter(Etablissement.nometab.ilike(f'%{query}%')).all()
         return [e.to_dict() for e in results]
 
+    
+    @staticmethod
+    def get_by_categories(categories):
+        return Etablissement.query.join(Categorie).filter(Categorie.nomcat.in_(categories)).all()
+
 
 class Categorie(db.Model):
     idcat = db.Column(db.String(6), primary_key=True)
@@ -279,6 +289,39 @@ class Categorie(db.Model):
         db.session.delete(cat)
         db.session.commit()
         return {"message": "Catégorie supprimée"}
+    
+    @staticmethod
+    def get_by_categories(categories):
+        # On fait une jointure avec Categorie pour récupérer le nom de catégorie
+        # On filtre sur le nom de catégorie (categorie.nomcat)
+        etablissements = db.session.query(
+            Etablissement.idetab.label('id'),
+            Etablissement.nometab.label('nom'),
+            Etablissement.adetab.label('adresse'),
+            Etablissement.villeetab.label('ville'),
+            Etablissement.cpetab.label('cp'),
+            Etablissement.teletab.label('tel'),
+            Etablissement.sitewebetab.label('siteweb'),
+            Etablissement.idcat.label('idcat'),
+            Categorie.nomcat.label('categorie')
+        ).join(Categorie, Etablissement.idcat == Categorie.idcat)\
+        .filter(Categorie.nomcat.in_(categories)).all()
+
+        result = []
+        for etab in etablissements:
+            result.append({
+                "id": etab.id,
+                "nom": etab.nom,
+                "adresse": etab.adresse,
+                "ville": etab.ville,
+                "cp": etab.cp,
+                "tel": etab.tel,
+                "siteweb": etab.siteweb,
+                "idcat": etab.idcat,
+                "categorie": etab.categorie
+            })
+        return result
+
 
 
 class Avis(db.Model):
