@@ -1,17 +1,16 @@
-<!-- templates/supprimer_etablissement.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Supprimer un établissement</title>
-</head>
-<body>
-    <h1>Supprimer l’établissement {{ etab.nometab }}</h1>
-    <p>Êtes-vous sûr de vouloir supprimer cet établissement ?</p>
+{% extends 'base.html' %}
 
-    <form action="/etablissement/supprimer/{{ etab.idetab }}" method="post">
-        <button type="submit">Oui, supprimer</button>
-    </form>
-    <a href="/">Annuler</a>
-</body>
-</html>
+{% block title %}Supprimer l’établissement {{ etab.nometab }}{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="text-center">
+        <h1 class="mb-4">Supprimer l’établissement {{ etab.nometab }}</h1>
+        <p>Êtes-vous sûr de vouloir supprimer cet établissement ?</p>
+        <form action="{{ url_for('main.supprimer_etablissement', idetab=etab.idetab) }}" method="post" class="mb-3">
+            <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+        </form>
+        <button onclick="window.history.back()" class="btn btn-secondary">Annuler</button>
+    </div>
+</div>
+{% endblock %}

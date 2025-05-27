@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
 from app.models.models import Utilisateur, Etablissement, Categorie, Avis, Possede
 from flask_login import login_user, logout_user, login_required, current_user
-
+from datetime import datetime
 
 main = Blueprint('main', __name__)
 
@@ -89,7 +89,7 @@ def modifier_etablissement_form(idetab):
 def modifier_etablissement(idetab):
     data = request.form
     Etablissement.update_from_json(idetab, data)
-    return redirect(url_for("main.home"))
+    return redirect(url_for("main.afficher_etablissements"))
 
 # ----------- DELETE -----------
 
@@ -103,7 +103,7 @@ def supprimer_etablissement_form(idetab):
 @main.route("/etablissement/supprimer/<idetab>", methods=["POST"])
 def supprimer_etablissement(idetab):
     Etablissement.delete_by_id(idetab)
-    return redirect(url_for("main.home"))
+    return redirect(url_for("main.afficher_etablissements"))
 
 #Route pour barre de recherche
 @main.route('/api/etablissements/search')
@@ -154,7 +154,8 @@ def utilisateur_ajouter_form():
 @main.route("/utilisateur/ajouter", methods=["POST"])
 def ajouter_utilisateur():
     data = request.form
-    return jsonify(Utilisateur.create_from_json(data)), 201
+    Utilisateur.create_from_json(data)
+    return redirect(url_for("main.get_utilisateurs"))
 
 # Affiche le formulaire pour modifier un utilisateur existant
 @main.route("/utilisateur/modifier/<iduser>", methods=["GET"])
@@ -166,7 +167,8 @@ def utilisateur_modifier_form(iduser):
 @main.route("/utilisateur/modifier/<iduser>", methods=["POST"])                       
 def modifier_utilisateur(iduser):
     data = request.form
-    return jsonify(Utilisateur.update_from_json(iduser, data))
+    Utilisateur.update_from_json(iduser, data)
+    return redirect(url_for("main.get_utilisateurs"))
 
 # Affiche la page de confirmation pour supprimer un utilisateur                        FAUT RENVOYER SUR UNE PAGE
 @main.route("/utilisateur/supprimer/<iduser>", methods=["GET"])                         
@@ -177,7 +179,8 @@ def utilisateur_supprimer_form(iduser):
 # Traite la suppression d'un utilisateur
 @main.route("/utilisateur/supprimer/<iduser>", methods=["POST"])
 def supprimer_utilisateur(iduser):
-    return jsonify(Utilisateur.delete_by_id(iduser))
+    Utilisateur.delete_by_id(iduser)
+    return redirect(url_for("main.get_utilisateurs"))
 
 
 @main.route('/login', methods=['GET'])
@@ -255,7 +258,8 @@ def categorie_ajouter_form():
 @main.route("/categorie/ajouter", methods=["POST"])
 def ajouter_categorie():
     data = request.form
-    return jsonify(Categorie.create_from_json(data)), 201
+    Categorie.create_from_json(data)
+    return redirect(url_for("main.get_categories"))
 
 # Affiche le formulaire pour modifier une catégorie existante
 @main.route("/categorie/modifier/<idcat>", methods=["GET"])
@@ -263,11 +267,12 @@ def categorie_modifier_form(idcat):
     categorie = Categorie.get_by_id_json(idcat)
     return render_template("public/modifier_categorie.html", categorie=categorie)
 
-# Traite le formulaire pour modifier une catégorie                                                  FAUT RENVOYER SUR UNE PAGE                       
+# Traite le formulaire pour modifier une catégorie                                                                 
 @main.route("/categorie/modifier/<idcat>", methods=["POST"])
 def modifier_categorie(idcat):
     data = request.form
-    return jsonify(Categorie.update_from_json(idcat, data))
+    Categorie.update_from_json(idcat, data)
+    return redirect(url_for("main.get_categories"))
 
 # Affiche la page de confirmation pour supprimer une catégorie
 @main.route("/categorie/supprimer/<idcat>", methods=["GET"])
@@ -275,10 +280,11 @@ def categorie_supprimer_form(idcat):
     categorie = Categorie.get_by_id_json(idcat)
     return render_template("public/supprimer_categorie.html", categorie=categorie)
 
-# Traite la suppression d'une catégorie                                                            FAUT RENVOYER SUR UNE PAGE 
+# Traite la suppression d'une catégorie                                                           
 @main.route("/categorie/supprimer/<idcat>", methods=["POST"])
 def supprimer_categorie(idcat):
-    return jsonify(Categorie.delete_by_id(idcat))
+    Categorie.delete_by_id(idcat)
+    return redirect(url_for("main.get_categories"))
 
 
 # --- AVIS ---
@@ -301,25 +307,60 @@ def get_avis_by_id(idav):
 # Affiche le formulaire pour ajouter un nouvel avis (méthode GET)
 @main.route("/avis/ajouter", methods=["GET"])                                                     #Si avis deja mis user+etab doit suppp ancien avis et que l'user puisse mettre un new
 def ajouter_avis_form():
-    return render_template('public/ajouter_avis.html')
+    utilisateurs = Utilisateur.query.all()
+    etablissements = Etablissement.query.all()
+    return render_template('public/ajouter_avis.html',utilisateurs=utilisateurs,
+        etablissements=etablissements)
 
 # Ajoute un nouvel avis à la base de données (méthode POST)
+#@main.route("/avis/ajouter", methods=["POST"])
+#def ajouter_avis():
+#    data = request.form.to_dict()  # on utilise form pour obtenir les données du formulaire
+#    Avis.create_from_json(data)
+#    return redirect(url_for("main.get_avis"))
 @main.route("/avis/ajouter", methods=["POST"])
 def ajouter_avis():
-    data = request.form.to_dict()  # on utilise form pour obtenir les données du formulaire
-    return jsonify(Avis.create_from_json(data)), 201
+    data = request.form.to_dict()
+
+    # Supposons que iduser et idetab sont dans data (sinon à adapter)
+    iduser = data.get("iduser")
+    idetab = data.get("idetab")
+
+    # Vérifier si un avis existe déjà pour ce couple user+etab
+    ancien_avis = Avis.query.filter_by(iduser=iduser, idetab=idetab).first()
+    if ancien_avis:
+        Avis.delete_by_id(ancien_avis.idav)  # Suppression de l'ancien avis
+
+     # Fixer la date de création à maintenant
+    data['datecreation'] = datetime.now()
+
+    Avis.create_from_json(data)
+    return redirect(url_for("main.get_avis"))
+
 
 # Affiche le formulaire pour modifier un avis (méthode GET)
+#@main.route("/avis/modifier/<idav>", methods=["GET"])
+#def modifier_avis_form(idav):
+#    avis = Avis.get_by_id_json(idav)
+#    return render_template('public/modifier_avis.html', avis=avis)
+
 @main.route("/avis/modifier/<idav>", methods=["GET"])
 def modifier_avis_form(idav):
-    avis = Avis.get_by_id_json(idav)
-    return render_template('public/modifier_avis.html', avis=avis)
+    avis = Avis.query.get_or_404(idav)  
+    utilisateur = avis.utilisateur      
+    etablissement = avis.etablissement  
 
+    return render_template('public/modifier_avis.html',avis=avis,
+        utilisateur=utilisateur,
+        etablissement=etablissement
+    )
 # Modifie un avis existant via son identifiant (méthode PUT)
 @main.route("/avis/modifier/<idav>", methods=["POST"])
 def modifier_avis(idav):
     data = request.form.to_dict()  # on récupère les données du formulaire
-    return jsonify(Avis.update_from_json(idav, data))
+    Avis.update_from_json(idav, data)
+    return redirect(url_for("main.get_avis"))
+
 
 # Supprime un avis via son identifiant (méthode DELETE)
 @main.route("/avis/supprimer/<idav>", methods=["GET"])
@@ -329,7 +370,8 @@ def supprimer_avis_form(idav):
 
 @main.route("/avis/supprimer/<idav>", methods=["POST"])
 def supprimer_avis(idav):
-    return jsonify(Avis.delete_by_id(idav))
+    Avis.delete_by_id(idav)
+    return redirect(url_for("main.get_avis"))
 
 
 # --- POSSEDE ---
@@ -339,11 +381,6 @@ def supprimer_avis(idav):
 def get_possedes():
     possedes = Possede.get_all_json_raw()
     return render_template("admin/possede.html", possede=possedes)
-
-# Récupère la liste de toutes les relations Possede (format JSON)
-#@main.route("/possede", methods=["GET"])
-#def get_possedes():
-#    return jsonify(Possede.get_all_json())
 
 # Récupère une relation Possede par idcat et idetab (format JSON)
 @main.route("/possede/<idcat>/<idetab>", methods=["GET"])

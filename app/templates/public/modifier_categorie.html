@@ -1,19 +1,33 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Modifier une catégorie</title>
-</head>
-<body>
-    <h1>Modifier la catégorie "{{ categorie.nomcat }}"</h1>
-    <form action="/categorie/modifier/{{ categorie.idcat }}" method="POST">
-        <label for="idcat">ID Catégorie :</label>
-        <input type="text" id="idcat" name="idcat" value="{{ categorie.idcat }}" readonly><br><br>
+{% extends 'base.html' %}
 
-        <label for="nomcat">Nom de la catégorie :</label>
-        <input type="text" id="nomcat" name="nomcat" value="{{ categorie.nomcat }}" required><br><br>
+{% block title %}Modifier la catégorie "{{ categorie.nomcat }}"{% endblock %}
 
-        <button type="submit">Modifier</button>
-    </form>
-</body>
-</html>
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="w-50">
+
+        <!-- Bouton retour en haut à gauche -->
+        <div class="mb-3">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary">
+                ← Retour
+            </button>
+        </div>
+
+        <!-- Titre -->
+        <h1 class="mb-4 text-center">Modifier la catégorie "{{ categorie.nomcat }}"</h1>
+
+        <!-- Formulaire -->
+        <form action="{{ url_for('main.modifier_categorie', idcat=categorie.idcat) }}" method="POST">
+            <div class="mb-3">
+                <label for="idcat" class="form-label">ID Catégorie :</label>
+                <input type="text" id="idcat" name="idcat" value="{{ categorie.idcat }}" readonly class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="nomcat" class="form-label">Nom de la catégorie :</label>
+                <input type="text" id="nomcat" name="nomcat" value="{{ categorie.nomcat }}" required class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Modifier</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

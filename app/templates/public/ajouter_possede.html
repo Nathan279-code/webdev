@@ -1,31 +1,39 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter une relation Possède</title>
-</head>
-<body>
-    <h1>Ajouter une relation Possède</h1>
+{% extends "base.html" %}
+
+{% block title %}Ajouter une relation Possède{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Bouton retour en haut à gauche -->
+    <div class="mb-3">
+        <button onclick="window.history.back()" class="btn btn-outline-secondary">
+            ← Retour
+        </button>
+    </div>
+
+    <h1 class="mb-4 text-center">Ajouter une relation Possède</h1>
 
     <form action="{{ url_for('main.ajouter_possede') }}" method="POST">
-        <label for="idcat">Catégorie :</label>
-        <select name="idcat" id="idcat" required>
-            {% for categorie in categories %}
-                <option value="{{ categorie.idcat }}">{{ categorie.nom }}</option>
-            {% endfor %}
-        </select><br><br>
+        <div class="mb-3">
+            <label for="idcat" class="form-label">Catégorie :</label>
+            <select name="idcat" id="idcat" class="form-select" required>
+                {% for categorie in categories %}
+                    <option value="{{ categorie.idcat }}">{{ categorie.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="idetab">Établissement :</label>
-        <select name="idetab" id="idetab" required>
-            {% for etablissement in etablissements %}
-                <option value="{{ etablissement.idetab }}">{{ etablissement.nom }}</option>
-            {% endfor %}
-        </select><br><br>
+        <div class="mb-3">
+            <label for="idetab" class="form-label">Établissement :</label>
+            <select name="idetab" id="idetab" class="form-select" required>
+                {% for etablissement in etablissements %}
+                    <option value="{{ etablissement.idetab }}">{{ etablissement.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <button type="submit">Ajouter</button>
+        <button type="submit" class="btn btn-primary w-100 mb-2">Ajouter</button>
     </form>
-
-    <a href="{{ url_for('main.home') }}">Retour à l'accueil</a>
-</body>
-</html>
+</div>
+{% endblock %}

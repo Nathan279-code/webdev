@@ -1,30 +1,53 @@
-<!-- ajouter_avis.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter un Avis</title>
-</head>
-<body>
-    <h1>Ajouter un Avis</h1>
-    <form action="/avis/ajouter" method="POST">
-        <label for="note">Note:</label>
-        <input type="number" id="note" name="note" step="1" min="0" max="5" required><br><br>
+{% extends 'base.html' %}
 
-        <label for="commentaire">Commentaire:</label>
-        <textarea id="commentaire" name="commentaire" rows="4" cols="50" required></textarea><br><br>
+{% block title %}Ajouter un Avis{% endblock %}
 
-        <label for="datecreation">Date de Création:</label>
-        <input type="date" id="datecreation" name="datecreation" required><br><br>
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="w-50">
 
-        <label for="iduser">ID Utilisateur:</label>
-        <input type="text" id="iduser" name="iduser" required><br><br>
+        <!-- Bouton retour -->
+        <div class="mb-3">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary">
+                ← Retour
+            </button>
+        </div>
 
-        <label for="idetab">ID Etablissement:</label>
-        <input type="text" id="idetab" name="idetab" required><br><br>
+        <!-- Titre -->
+        <h1 class="mb-4 text-center">Ajouter un Avis</h1>
 
-        <button type="submit">Ajouter</button>
-    </form>
-</body>
-</html>
+        <!-- Formulaire -->
+        <form action="{{ url_for('main.ajouter_avis') }}" method="POST">
+            <div class="mb-3">
+                <label for="note" class="form-label">Note :</label>
+                <input type="number" class="form-control" id="note" name="note" step="1" min="0" max="5" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="commentaire" class="form-label">Commentaire :</label>
+                <textarea class="form-control" id="commentaire" name="commentaire" rows="4" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="iduser" class="form-label">Utilisateur :</label>
+                <select class="form-select" id="iduser" name="iduser" required>
+                    {% for user in utilisateurs %}
+                        <option value="{{ user.iduser }}">{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="idetab" class="form-label">Établissement :</label>
+                <select class="form-select" id="idetab" name="idetab" required>
+                    {% for etab in etablissements %}
+                        <option value="{{ etab.idetab }}">{{ etab.nometab }}</option>
+                    {% endfor %}
+                </select>                
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

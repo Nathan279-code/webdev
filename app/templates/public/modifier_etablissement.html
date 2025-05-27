@@ -1,42 +1,58 @@
-<!-- templates/modifier_etablissement.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Modifier un établissement</title>
-</head>
-<body>
-    <h1>Modifier l’établissement {{ etab.nometab }}</h1>
-    <form action="/etablissement/modifier/{{ etab.idetab }}" method="post">
-        <label>Nom :</label><br>
-        <input type="text" name="nometab" value="{{ etab.nometab }}" required><br>
+{% extends 'base.html' %}
 
-        <label>Adresse :</label><br>
-        <input type="text" name="adetab" value="{{ etab.adetab }}" required><br>
+{% block title %}Modifier l’établissement {{ etab.nometab }}{% endblock %}
 
-        <label>Ville :</label><br>
-        <input type="text" name="villeetab" value="{{ etab.villeetab }}" required><br>
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center flex-column" style="min-height: 80vh;">
+    <div class="w-50">
+        <h1 class="mb-4 text-center">Modifier l’établissement {{ etab.nometab }}</h1>
+        <form action="{{ url_for('main.modifier_etablissement', idetab=etab.idetab) }}" method="post">
+            <div class="mb-3">
+                <label for="nometab" class="form-label">Nom :</label>
+                <input type="text" id="nometab" name="nometab" class="form-control" value="{{ etab.nometab }}" required>
+            </div>
 
-        <label>Code Postal :</label><br>
-        <input type="text" name="cpetab" value="{{ etab.cpetab }}" required><br>
+            <div class="mb-3">
+                <label for="adetab" class="form-label">Adresse :</label>
+                <input type="text" id="adetab" name="adetab" class="form-control" value="{{ etab.adetab }}" required>
+            </div>
 
-        <label>Téléphone :</label><br>
-        <input type="text" name="teletab" value="{{ etab.teletab }}" required><br>
+            <div class="mb-3">
+                <label for="villeetab" class="form-label">Ville :</label>
+                <input type="text" id="villeetab" name="villeetab" class="form-control" value="{{ etab.villeetab }}" required>
+            </div>
 
-        <label>Site Web :</label><br>
-        <input type="text" name="sitewebetab" value="{{ etab.sitewebetab }}" required><br>
+            <div class="mb-3">
+                <label for="cpetab" class="form-label">Code Postal :</label>
+                <input type="text" id="cpetab" name="cpetab" class="form-control" value="{{ etab.cpetab }}" required>
+            </div>
 
-        <label>Catégorie :</label><br>
-        <select name="idcat" required>
-            {% for cat in categories %}
-                <option value="{{ cat.idcat }}" {% if cat.idcat == etab.idcat %}selected{% endif %}>
-                    {{ cat.nomcat }}
-                </option>
-            {% endfor %}
-        </select><br><br>
+            <div class="mb-3">
+                <label for="teletab" class="form-label">Téléphone :</label>
+                <input type="text" id="teletab" name="teletab" class="form-control" value="{{ etab.teletab }}" required>
+            </div>
 
+            <div class="mb-3">
+                <label for="sitewebetab" class="form-label">Site Web :</label>
+                <input type="text" id="sitewebetab" name="sitewebetab" class="form-control" value="{{ etab.sitewebetab }}" required>
+            </div>
 
-        <button type="submit">Mettre à jour</button>
-    </form>
-</body>
-</html>
+            <div class="mb-3">
+                <label for="idcat" class="form-label">Catégorie :</label>
+                <select id="idcat" name="idcat" class="form-select" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat.idcat }}" {% if cat.idcat == etab.idcat %}selected{% endif %}>
+                            {{ cat.nomcat }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">Mettre à jour</button>
+        </form>
+    </div>
+    <div class="w-50">
+        <button onclick="window.history.back()" class="btn btn-secondary w-100">Retour</button>
+    </div>
+</div>
+{% endblock %}

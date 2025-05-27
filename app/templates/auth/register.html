@@ -3,40 +3,53 @@
 {% block title %}Inscription{% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
-        <h2 class="text-center mb-4">Créer un compte</h2>
+<div class="container d-flex justify-content-center align-items-center flex-column" style="min-height: 100vh; max-width: 400px; margin: auto;">
 
-        <form method="POST" action="{{ url_for('auth.register_post') }}">
-            <div class="mb-3">
-                <label for="username" class="form-label">Nom d'utilisateur</label>
-                <input type="text" class="form-control" id="username" name="username" required>
-            </div>
+  <!-- Bouton Retour en haut à gauche -->
+  <div class="w-100 mb-3">
+    <button onclick="window.location.href='/public/menu';" class="btn btn-outline-secondary">
+      ← Retour
+    </button>
+  </div>
+  
 
-            <div class="mb-3">
-                <label for="emailuser" class="form-label">Adresse email</label>
-                <input type="email" class="form-control" id="emailuser" name="emailuser" required>
-            </div>
+  <div class="card shadow p-4 w-100">
+    <h2 class="text-center mb-4">Créer un compte</h2>
 
-            <div class="mb-3">
-                <label for="mdpuser" class="form-label">Mot de passe</label>
-                <input type="password" class="form-control" id="mdpuser" name="mdpuser" required>
-            </div>
+    <form method="POST" action="{{ url_for('auth.register_post') }}">
+      <div class="mb-3">
+        <label for="username" class="form-label">Nom d'utilisateur</label>
+        <input type="text" class="form-control" id="username" name="username" required>
+      </div>
 
-            <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
-        </form>
+      <div class="mb-3">
+        <label for="emailuser" class="form-label">Adresse email</label>
+        <input type="email" class="form-control" id="emailuser" name="emailuser" required>
+      </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="mt-3">
-                    {% for category, message in messages %}
-                        {% if category == 'register' %}
-                            <div class="alert alert-warning" role="alert">{{ message }}</div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+      <div class="mb-3">
+        <label for="mdpuser" class="form-label">Mot de passe</label>
+        <input type="password" class="form-control" id="mdpuser" name="mdpuser" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mb-3">S'inscrire</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mt-3">
+          {% for category, message in messages %}
+            {% if category == 'register' %}
+              <div class="alert alert-warning" role="alert">{{ message }}</div>
             {% endif %}
-        {% endwith %}
-    </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <button onclick="window.location.href='/auth/login';" class="btn btn-secondary w-100">
+        Se connecter
+      </button>
+  </div>
 </div>
 {% endblock %}

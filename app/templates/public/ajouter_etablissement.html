@@ -1,41 +1,56 @@
-<!-- templates/ajouter_etablissement.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Ajouter un établissement</title>
-</head>
-<body>
-    <h1>Ajouter un établissement</h1>
-    <form action="/etablissement/ajouter" method="post">
-        <label>Nom :</label><br>
-        <input type="text" name="nometab" required><br>
+{% extends 'base.html' %}
 
-        <label>Adresse :</label><br>
-        <input type="text" name="adetab" required><br>
+{% block title %}Ajouter un établissement{% endblock %}
 
-        <label>Ville :</label><br>
-        <input type="text" name="villeetab" required><br>
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="w-50">
+        <!-- Bouton Retour -->
+        <button type="button" class="btn btn-secondary mb-3" onclick="history.back()">← Retour</button>
 
-        <label>Code Postal :</label><br>
-        <input type="text" name="cpetab" required><br>
+        <h1 class="mb-4 text-center">Ajouter un établissement</h1>
+        <form action="{{ url_for('main.ajouter_etablissement') }}" method="post">
+            <div class="mb-3">
+                <label for="nometab" class="form-label">Nom :</label>
+                <input type="text" id="nometab" name="nometab" class="form-control" required>
+            </div>
 
-        <label>Téléphone :</label><br>
-        <input type="text" name="teletab" required><br>
+            <div class="mb-3">
+                <label for="adetab" class="form-label">Adresse :</label>
+                <input type="text" id="adetab" name="adetab" class="form-control" required>
+            </div>
 
-        <label>Site Web :</label><br>
-        <input type="text" name="sitewebetab" required><br>
+            <div class="mb-3">
+                <label for="villeetab" class="form-label">Ville :</label>
+                <input type="text" id="villeetab" name="villeetab" class="form-control" required>
+            </div>
 
-        <label>Catégorie :</label><br>
-        <select name="idcat" required>
-            {% for cat in categories %}
-                <option value="{{ cat.idcat }}">{{ cat.nomcat }}</option>
-            {% endfor %}
-        </select>
-        <br><br>
+            <div class="mb-3">
+                <label for="cpetab" class="form-label">Code Postal :</label>
+                <input type="text" id="cpetab" name="cpetab" class="form-control" required>
+            </div>
 
+            <div class="mb-3">
+                <label for="teletab" class="form-label">Téléphone :</label>
+                <input type="text" id="teletab" name="teletab" class="form-control" required>
+            </div>
 
-        <button type="submit">Ajouter</button>
-    </form>
-</body>
-</html>
+            <div class="mb-3">
+                <label for="sitewebetab" class="form-label">Site Web :</label>
+                <input type="text" id="sitewebetab" name="sitewebetab" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="idcat" class="form-label">Catégorie :</label>
+                <select id="idcat" name="idcat" class="form-select" required>
+                    {% for cat in categories %}
+                        <option value="{{ cat.idcat }}">{{ cat.nomcat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

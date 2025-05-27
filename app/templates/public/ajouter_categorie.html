@@ -1,16 +1,29 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Ajouter une catégorie</title>
-</head>
-<body>
-    <h1>Ajouter une nouvelle catégorie</h1>
-    <form action="/categorie/ajouter" method="POST">
-        <label for="nomcat">Nom de la catégorie :</label>
-        <input type="text" id="nomcat" name="nomcat" required><br><br>
+{% extends 'base.html' %}
 
-        <button type="submit">Ajouter</button>
-    </form>
-</body>
-</html>
+{% block title %}Ajouter une catégorie{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="w-50">
+
+        <!-- Bouton retour en haut à gauche -->
+        <div class="mb-3">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary">
+                ← Retour
+            </button>
+        </div>
+
+        <!-- Titre -->
+        <h1 class="mb-4 text-center">Ajouter une nouvelle catégorie</h1>
+
+        <!-- Formulaire -->
+        <form action="{{ url_for('main.ajouter_categorie') }}" method="POST">
+            <div class="mb-3">
+                <label for="nomcat" class="form-label">Nom de la catégorie :</label>
+                <input type="text" id="nomcat" name="nomcat" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

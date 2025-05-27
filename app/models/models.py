@@ -1,6 +1,7 @@
 from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from datetime import date
 
 def generate_custom_id(model_class, prefix, id_field):
     last_item = model_class.query.order_by(getattr(model_class, id_field).desc()).first()
@@ -394,7 +395,7 @@ class Avis(db.Model):
             idav=new_id,
             note=data["note"],
             commentaire=data["commentaire"],
-            datecreation=data["datecreation"],
+            datecreation=date.today(),
             iduser=data["iduser"],
             idetab=data["idetab"]
         )
@@ -408,7 +409,7 @@ class Avis(db.Model):
         avis = Avis.query.get_or_404(idav)
         avis.note = data.get("note", avis.note)
         avis.commentaire = data.get("commentaire", avis.commentaire)
-        avis.datecreation = data.get("datecreation", avis.datecreation)
+        avis.datecreation = date.today()
         avis.iduser = data.get("iduser", avis.iduser)
         avis.idetab = data.get("idetab", avis.idetab)
         db.session.commit()

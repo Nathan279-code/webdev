@@ -63,6 +63,13 @@
             <span class="badge bg-primary fs-6">Utilisateur</span>
           {% endif %}
         </div>
+
+        {% if current_user.admin %}
+          <a href="{{ url_for('main.menu') }}" class="btn btn-warning w-100 mb-2">
+            <i class="bi bi-speedometer2"></i> Menu Admin
+          </a>
+        {% endif %}
+
         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100">
           <i class="bi bi-box-arrow-right"></i> Déconnexion
         </a>

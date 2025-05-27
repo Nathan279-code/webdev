@@ -1,29 +1,50 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Modifier un utilisateur</title>
-</head>
-<body>
-    <h1>Modifier l'utilisateur : {{ utilisateur.username }}</h1>
-    <form action="/utilisateur/modifier/{{ utilisateur.iduser }}" method="POST">
-        <label for="iduser">ID Utilisateur :</label>
-        <input type="text" id="iduser" name="iduser" value="{{ utilisateur.iduser }}" disabled><br><br>
+{% extends 'base.html' %}
 
-        <label for="username">Nom d'utilisateur :</label>
-        <input type="text" id="username" name="username" value="{{ utilisateur.username }}" required><br><br>
+{% block title %}Modifier l'utilisateur : {{ utilisateur.username }}{% endblock %}
 
-        <label for="emailuser">Email :</label>
-        <input type="email" id="emailuser" name="emailuser" value="{{ utilisateur.emailuser }}" required><br><br>
+{% block content %}
+<div class="d-flex vh-100 justify-content-center align-items-center">
+    <div class="card p-4 shadow" style="max-width: 500px; width: 100%;">
 
-        <label for="mdpuser">Mot de passe :</label>
-        <input type="password" id="mdpuser" name="mdpuser" placeholder="Laisser vide pour garder le mot de passe"><br><br>
+        <!-- Bouton Retour en haut à gauche -->
+        <div class="mb-3">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary">
+                ← Retour
+            </button>
+        </div>
 
+        <!-- Titre -->
+        <h1 class="mb-4 text-center">Modifier l'utilisateur : {{ utilisateur.username }}</h1>
 
-        <label for="admin">Administrateur :</label>
-        <input type="checkbox" id="admin" name="admin"{% if utilisateur.admin %}checked{% endif %}><br><br>
+        <!-- Formulaire -->
+        <form action="{{ url_for('main.utilisateur_modifier_form', iduser=utilisateur.iduser) }}" method="POST">
+            <div class="mb-3">
+                <label for="iduser" class="form-label">ID Utilisateur :</label>
+                <input type="text" id="iduser" class="form-control" value="{{ utilisateur.iduser }}" disabled>
+            </div>
 
-        <button type="submit">Modifier</button>
-    </form>
-</body>
-</html>
+            <div class="mb-3">
+                <label for="username" class="form-label">Nom d'utilisateur :</label>
+                <input type="text" id="username" name="username" class="form-control" value="{{ utilisateur.username }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="emailuser" class="form-label">Email :</label>
+                <input type="email" id="emailuser" name="emailuser" class="form-control" value="{{ utilisateur.emailuser }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="mdpuser" class="form-label">Mot de passe :</label>
+                <input type="password" id="mdpuser" name="mdpuser" class="form-control" placeholder="Laisser vide pour garder le mot de passe">
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" id="admin" name="admin" class="form-check-input" {% if utilisateur.admin %}checked{% endif %}>
+                <label class="form-check-label" for="admin">Administrateur</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Modifier</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

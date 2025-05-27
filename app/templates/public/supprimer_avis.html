@@ -1,20 +1,20 @@
-<!-- supprimer_avis.html -->
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supprimer un Avis</title>
-</head>
-<body>
-    <h1>Supprimer un Avis</h1>
-    <form action="/avis/supprimer/{{ avis.idav }}" method="POST">
+{% extends 'base.html' %}
+
+{% block title %}Supprimer un Avis{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="w-50 text-center">
+        <h1 class="mb-4">Supprimer un Avis</h1>
         <p>Êtes-vous sûr de vouloir supprimer l'avis suivant ?</p>
-        <p><strong>ID Avis:</strong> {{ avis.idav }}</p>
-        <p><strong>Commentaire:</strong> {{ avis.commentaire }}</p>
-        <p><strong>Note:</strong> {{ avis.note }}</p>
-        
-        <button type="submit">Supprimer</button>
-    </form>
-</body>
-</html>
+        <p><strong>ID Avis :</strong> {{ avis.idav }}</p>
+        <p><strong>Commentaire :</strong> {{ avis.commentaire }}</p>
+        <p><strong>Note :</strong> {{ avis.note }}</p>
+
+        <form action="{{ url_for('main.supprimer_avis', idav=avis.idav) }}" method="POST" class="mb-3">
+            <button type="submit" class="btn btn-danger w-100">Supprimer</button>
+        </form>
+        <a href="{{ url_for('main.get_avis') }}" class="btn btn-secondary w-100">Annuler</a>
+    </div>
+</div>
+{% endblock %}

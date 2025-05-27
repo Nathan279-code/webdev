@@ -6,8 +6,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-  <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
+<div class="container d-flex justify-content-center align-items-center flex-column" style="height: 100vh; max-width: 400px; margin: auto;">
+
+  <!-- Bouton Retour en haut à gauche -->
+  <div class="w-100 mb-3">
+    <button onclick="window.location.href='/public/menu';" class="btn btn-outline-secondary">
+      ← Retour
+    </button>
+  </div>
+
+  <div class="card shadow p-4 w-100">
     <h2 class="mb-4 text-center">Connexion</h2>
 
     {% if error %}
@@ -25,8 +33,16 @@
         <label for="password" class="form-label">Mot de passe</label>
         <input type="password" class="form-control" id="password" name="password" required />
       </div>
-      <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+      <button type="submit" class="btn btn-primary w-100 mb-3">Se connecter</button>
     </form>
+
+    <button onclick="window.location.href='/auth/register';" class="btn btn-secondary w-100">
+      S'inscrire
+    </button>
+    
+    
+    
+     
   </div>
 </div>
 {% endblock %}

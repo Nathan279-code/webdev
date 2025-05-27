@@ -1,22 +1,21 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supprimer la relation Possède</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Supprimer la relation Possède{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
     <h1>Supprimer la relation Possède</h1>
 
     <p>Êtes-vous sûr de vouloir supprimer cette relation ?</p>
 
-    <p><strong>Catégorie :</strong> {{ possede.idcat }}</p>
-    <p><strong>Établissement :</strong> {{ possede.idetab }}</p>
+    <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Catégorie :</strong> {{ possede.idcat }}</li>
+        <li class="list-group-item"><strong>Établissement :</strong> {{ possede.idetab }}</li>
+    </ul>
 
     <form action="{{ url_for('main.supprimer_possede', idcat=possede.idcat, idetab=possede.idetab) }}" method="POST">
-        <button type="submit">Supprimer</button>
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+        <a href="{{ url_for('main.home') }}" class="btn btn-secondary ms-2">Retour à l'accueil</a>
     </form>
-
-    <a href="{{ url_for('main.home') }}">Retour à l'accueil</a>
-</body>
-</html>
+</div>
+{% endblock %}

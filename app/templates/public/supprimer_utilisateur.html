@@ -1,15 +1,18 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Supprimer un utilisateur</title>
-</head>
-<body>
-    <h1>Confirmer la suppression de l'utilisateur : {{ utilisateur.username }}</h1>
-    <form action="/utilisateur/supprimer/{{ utilisateur.iduser }}" method="POST">
-        <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
-        <button type="submit">Oui, supprimer</button><br><br>
-        <a href="/utilisateurs">Non, annuler</a>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}Supprimer l'utilisateur : {{ utilisateur.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex vh-100 justify-content-center align-items-center">
+    <div class="card p-4 shadow" style="max-width: 500px; width: 100%;">
+        <h1 class="mb-4 text-center">Confirmer la suppression de l'utilisateur : <br><strong>{{ utilisateur.username }}</strong></h1>
+        <form action="{{ url_for('main.utilisateur_supprimer_form', iduser=utilisateur.iduser) }}" method="POST">
+            <p class="text-center mb-4">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+            <div class="d-flex justify-content-center gap-3">
+                <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                <a href="{{ url_for('main.get_utilisateurs') }}" class="btn btn-secondary">Non, annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
