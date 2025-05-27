@@ -342,32 +342,13 @@ def ajouter_avis_form_admin():
                            etablissements=etablissements)
 
 
-# Ajoute un nouvel avis à la base de données (méthode POST)
-#@main.route("/avis/ajouter", methods=["POST"])
-#def ajouter_avis():
-#    data = request.form.to_dict()""
-#
-#    # iduser et idetab sont dans data 
-#    iduser = data.get("iduser")
-#    idetab = data.get("idetab")
-#
-#    # Vérifier si un avis existe déjà pour ce couple user+etab
-#    ancien_avis = Avis.query.filter_by(iduser=iduser, idetab=idetab).first()
-#    if ancien_avis:
-#        Avis.delete_by_id(ancien_avis.idav)  # Suppression de l'ancien avis
-#
-#     # Fixer la date de création à maintenant
-#    data['datecreation'] = datetime.now()
-#
-#    Avis.create_from_json(data)
-#    return redirect(url_for("main.get_avis"))
-
 @main.route("/avis/ajouter", methods=["POST"])
 @login_required
 def ajouter_avis():
     data = request.form.to_dict()
     iduser = current_user.iduser
     idetab = data.get("idetab")
+    source = data.get("source")
 
     if not idetab:
         return "Établissement non précisé", 400
@@ -381,7 +362,13 @@ def ajouter_avis():
     data['datecreation'] = datetime.now()
 
     Avis.create_from_json(data)
-    return redirect(url_for("main.get_avis"))
+    
+    # Redirection selon la source du formulaire
+    if source == "admin":
+        return redirect(url_for("main.get_avis"))  # page liste avis admin
+    else:
+        return redirect(url_for("main.home"))  # page publique principale (carte)
+
 
 
 @main.route("/avis/modifier/<idav>", methods=["GET"])
