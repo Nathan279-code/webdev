@@ -7,38 +7,53 @@
 {% endblock %}
 
 {% block sidebar %}
-<nav class="bg-light border-end p-3" style="width: 300px; min-height: 100vh;  padding-left: 3rem;">
-  <h4>Recherche d'établissement</h4>
-  <input
-      type="text"
-      id="search-input"
-      class="form-control"
-      placeholder="Rechercher un établissement..."
-      autocomplete="off"
-  />
+<nav class="bg-light border-end d-flex flex-column p-3" style="width: 300px; min-height: 100vh; padding-left: 3rem;">
+  <!-- Contenu scrollable -->
+  <div style="flex-grow: 1; overflow-y: auto; padding-right: 1rem;">
+    <h4>Recherche d'établissement</h4>
+    <input
+        type="text"
+        id="search-input"
+        class="form-control"
+        placeholder="Rechercher un établissement..."
+        autocomplete="off"
+    />
 
-  <h5 class="mt-3">Catégories</h5>
-  <div id="categories-list" class="d-flex overflow-auto flex-row gap-2 pb-2" style="white-space: nowrap;">
-      <button type="button" class="btn btn-sm btn-outline-secondary active" data-category="ALL">Tous</button>
-      {% for cat in categories %}
-          <button type="button" class="btn btn-sm btn-outline-primary" data-category="{{ cat.nomcat }}">
-              {{ cat.nomcat }}
+    <h5 class="mt-3">Catégories</h5>
+    <div id="categories-list" class="d-flex overflow-auto flex-row gap-2 pb-2" style="white-space: nowrap;">
+        <button type="button" class="btn btn-sm btn-outline-secondary active" data-category="ALL">Tous</button>
+        {% for cat in categories %}
+            <button type="button" class="btn btn-sm btn-outline-primary" data-category="{{ cat.nomcat }}">
+                {{ cat.nomcat }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <ul class="list-group mt-2" id="results-list" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;"></ul>
+
+    <div class="accordion mt-4" id="accordionDetails" style="display: none;">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingDetails">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
+            Détails de l’établissement
           </button>
-      {% endfor %}
+        </h2>
+        <div id="collapseDetails" class="accordion-collapse collapse" aria-labelledby="headingDetails">
+          <div class="accordion-body">
+            <h5 id="etab-nom"></h5>
+            <p id="etab-adresse"></p>
+            <p id="etab-ville"></p>
+            <p>Téléphone : <span id="etab-tel"></span></p>
+            <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
+            <button class="btn btn-primary w-100 mt-2" id="btn-ajouter-avis">Ajouter un avis</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <ul class="list-group mt-2 overflow-auto" style="max-height: 300px;" id="results-list"></ul>
-
-  <div class="mt-4" id="etab-details" style="display: none;">
-      <h5 id="etab-nom"></h5>
-      <p id="etab-adresse"></p>
-      <p id="etab-ville"></p>
-      <p>Téléphone : <span id="etab-tel"></span></p>
-      <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
-      <button class="btn btn-primary" id="btn-ajouter-avis">Ajouter un avis</button>
-  </div>
-
-  <div class="position-fixed bottom-0 start-0 m-3 p-3 border rounded bg-light shadow" style="width: 220px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <!-- Zone fixe en bas -->
+  <div style="flex-shrink: 0;">
       {% if current_user.is_authenticated %}
         <div class="mb-2 text-center">
           <div class="fw-semibold mb-1">Connecté en tant que :</div>
@@ -71,12 +86,11 @@
 </main>
 {% endblock %}
 
-
 {% block extra_scripts %}
 <script>
     const searchInput = document.getElementById('search-input');
     const resultsList = document.getElementById('results-list');
-    const etabDetails = document.getElementById('etab-details');
+    const etabDetails = document.getElementById('accordionDetails');
     const etabNom = document.getElementById('etab-nom');
     const etabAdresse = document.getElementById('etab-adresse');
     const etabVille = document.getElementById('etab-ville');
@@ -94,6 +108,9 @@
         etabSiteweb.textContent = etab.siteweb;
         etabSiteweb.href = etab.siteweb;
         etabDetails.style.display = 'block';
+
+        const collapseElement = document.getElementById('collapseDetails');
+        const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
     }
 
     btnAjouterAvis.addEventListener('click', () => {
@@ -124,6 +141,11 @@
             li.textContent = etab.nom;
             li.classList.add('list-group-item', 'list-group-item-action');
             li.style.cursor = 'pointer';
+            li.style.whiteSpace = 'nowrap';
+            li.style.overflow = 'hidden';
+            li.style.textOverflow = 'ellipsis';
+            li.addEventListener('mouseenter', () => li.classList.add('active'));
+            li.addEventListener('mouseleave', () => li.classList.remove('active'));
             li.addEventListener('click', () => {
                 selectedEtabId = etab.id;
                 showEtablissementDetails(etab);
@@ -177,6 +199,11 @@
                 li.textContent = etab.nom;
                 li.classList.add('list-group-item', 'list-group-item-action');
                 li.style.cursor = 'pointer';
+                li.style.whiteSpace = 'nowrap';
+                li.style.overflow = 'hidden';
+                li.style.textOverflow = 'ellipsis';
+                li.addEventListener('mouseenter', () => li.classList.add('active'));
+                li.addEventListener('mouseleave', () => li.classList.remove('active'));
                 li.addEventListener('click', () => {
                     selectedEtabId = etab.id;
                     showEtablissementDetails(etab);
