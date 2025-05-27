@@ -120,12 +120,36 @@
         const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
     }
 
+    async function showEtablissementDetailsFromId(id) {
+      try {
+        const res = await fetch(`/etablissement/${id}`);
+        if (!res.ok) throw new Error('Établissement non trouvé');
+        const etab = await res.json();
+
+        selectedEtabId = etab.id;
+
+        showEtablissementDetails(etab);
+        searchInput.value = etab.nom;
+        resultsList.innerHTML = '';
+
+        // Ouvrir la section détails si elle est fermée
+        const collapseElement = document.getElementById('collapseDetails');
+        const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
+      } catch (err) {
+        alert('Erreur lors du chargement de la fiche.');
+        console.error(err);
+      }
+    }
+
+
     btnAjouterAvis.addEventListener('click', () => {
         if (!selectedEtabId) {
             alert('Veuillez sélectionner un établissement.');
             return;
         }
-        window.location.href = `/avis/ajouter/${selectedEtabId}`;
+        //window.location.href = `/avis/ajouter/${selectedEtabId}`;
+        window.location.href = `/avis/ajouter?idetab=${selectedEtabId}`;
+
     });
 
     searchInput.addEventListener('input', async () => {

@@ -294,10 +294,6 @@ def get_avis():
     avis = Avis.get_all_json_raw()
     return render_template("admin/avis.html", avis=avis) 
 
-# Récupère la liste de tous les avis (format JSON)
-#@main.route("/avis", methods=["GET"])
-#def get_avis():
-#    return jsonify(Avis.get_all_json())
 
 # Récupère un avis par son identifiant (format JSON)
 @main.route("/avis/<idav>", methods=["GET"])
@@ -307,22 +303,18 @@ def get_avis_by_id(idav):
 # Affiche le formulaire pour ajouter un nouvel avis (méthode GET)
 @main.route("/avis/ajouter", methods=["GET"])                                                     #Si avis deja mis user+etab doit suppp ancien avis et que l'user puisse mettre un new
 def ajouter_avis_form():
+    idetab = request.args.get('idetab')
     utilisateurs = Utilisateur.query.all()
     etablissements = Etablissement.query.all()
     return render_template('public/ajouter_avis.html',utilisateurs=utilisateurs,
         etablissements=etablissements)
 
 # Ajoute un nouvel avis à la base de données (méthode POST)
-#@main.route("/avis/ajouter", methods=["POST"])
-#def ajouter_avis():
-#    data = request.form.to_dict()  # on utilise form pour obtenir les données du formulaire
-#    Avis.create_from_json(data)
-#    return redirect(url_for("main.get_avis"))
 @main.route("/avis/ajouter", methods=["POST"])
 def ajouter_avis():
     data = request.form.to_dict()
 
-    # Supposons que iduser et idetab sont dans data (sinon à adapter)
+    # iduser et idetab sont dans data 
     iduser = data.get("iduser")
     idetab = data.get("idetab")
 
@@ -336,13 +328,6 @@ def ajouter_avis():
 
     Avis.create_from_json(data)
     return redirect(url_for("main.get_avis"))
-
-
-# Affiche le formulaire pour modifier un avis (méthode GET)
-#@main.route("/avis/modifier/<idav>", methods=["GET"])
-#def modifier_avis_form(idav):
-#    avis = Avis.get_by_id_json(idav)
-#    return render_template('public/modifier_avis.html', avis=avis)
 
 @main.route("/avis/modifier/<idav>", methods=["GET"])
 def modifier_avis_form(idav):
