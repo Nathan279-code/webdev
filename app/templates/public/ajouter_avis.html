@@ -18,34 +18,33 @@
 
         <!-- Formulaire -->
         <form action="{{ url_for('main.ajouter_avis') }}" method="POST">
+
+            <!-- Note -->
             <div class="mb-3">
                 <label for="note" class="form-label">Note :</label>
                 <input type="number" class="form-control" id="note" name="note" step="1" min="0" max="5" required>
             </div>
 
+            <!-- Commentaire -->
             <div class="mb-3">
                 <label for="commentaire" class="form-label">Commentaire :</label>
                 <textarea class="form-control" id="commentaire" name="commentaire" rows="4" required></textarea>
             </div>
 
+            <!-- Informations affichées mais non modifiables -->
             <div class="mb-3">
-                <label for="iduser" class="form-label">Utilisateur :</label>
-                <select class="form-select" id="iduser" name="iduser" required>
-                    {% for user in utilisateurs %}
-                        <option value="{{ user.iduser }}">{{ user.username }}</option>
-                    {% endfor %}
-                </select>
+                <label class="form-label">Utilisateur :</label>
+                <input type="text" class="form-control" value="{{ utilisateur.username }}" disabled>
+                <input type="hidden" name="iduser" value="{{ utilisateur.iduser }}">
             </div>
 
             <div class="mb-3">
-                <label for="idetab" class="form-label">Établissement :</label>
-                <select class="form-select" id="idetab" name="idetab" required>
-                    {% for etab in etablissements %}
-                        <option value="{{ etab.idetab }}">{{ etab.nometab }}</option>
-                    {% endfor %}
-                </select>                
+                <label class="form-label">Établissement :</label>
+                <input type="text" class="form-control" value="{{ etablissement.nometab }}" disabled>
+                <input type="hidden" name="idetab" value="{{ etablissement.idetab }}">
             </div>
 
+            <!-- Bouton de soumission -->
             <button type="submit" class="btn btn-primary w-100">Ajouter</button>
         </form>
     </div>

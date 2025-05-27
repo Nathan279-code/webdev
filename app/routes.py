@@ -301,33 +301,88 @@ def get_avis_by_id(idav):
     return jsonify(Avis.get_by_id_json(idav))
 
 # Affiche le formulaire pour ajouter un nouvel avis (méthode GET)
-@main.route("/avis/ajouter", methods=["GET"])                                                     #Si avis deja mis user+etab doit suppp ancien avis et que l'user puisse mettre un new
+#@main.route("/avis/ajouter", methods=["GET"])                                                     #Si avis deja mis user+etab doit suppp ancien avis et que l'user puisse mettre un new
+#def ajouter_avis_form():
+#    idetab = request.args.get('idetab')   #<--------------------------------------------------------------------------
+#    utilisateurs = Utilisateur.query.all()
+#    etablissements = Etablissement.query.all()
+#    return render_template('public/ajouter_avis.html',utilisateurs=utilisateurs,
+#        etablissements=etablissements)
+
+@main.route("/avis/ajouter", methods=["GET"])
+@login_required
 def ajouter_avis_form():
     idetab = request.args.get('idetab')
+
+    if not idetab:
+        return "Identifiant de l'établissement manquant", 400
+
+    etablissement = Etablissement.query.get(idetab)
+    if not etablissement:
+        return "Établissement non trouvé", 404
+
+    utilisateur = current_user  # Utilisateur connecté
+    return render_template('public/ajouter_avis.html',
+                           utilisateur=utilisateur,
+                           etablissement=etablissement)
+
+
+
+# --- Route admin ---
+@main.route("/admin/avis/ajouter", methods=["GET"])
+@login_required
+def ajouter_avis_form_admin():
+    if not current_user.admin:  #méthode pour vérif admin
+        return "Accès refusé", 403
+
     utilisateurs = Utilisateur.query.all()
     etablissements = Etablissement.query.all()
-    return render_template('public/ajouter_avis.html',utilisateurs=utilisateurs,
-        etablissements=etablissements)
+    return render_template('admin/ajouter_avis_admin.html',
+                           utilisateurs=utilisateurs,
+                           etablissements=etablissements)
+
 
 # Ajoute un nouvel avis à la base de données (méthode POST)
+#@main.route("/avis/ajouter", methods=["POST"])
+#def ajouter_avis():
+#    data = request.form.to_dict()""
+#
+#    # iduser et idetab sont dans data 
+#    iduser = data.get("iduser")
+#    idetab = data.get("idetab")
+#
+#    # Vérifier si un avis existe déjà pour ce couple user+etab
+#    ancien_avis = Avis.query.filter_by(iduser=iduser, idetab=idetab).first()
+#    if ancien_avis:
+#        Avis.delete_by_id(ancien_avis.idav)  # Suppression de l'ancien avis
+#
+#     # Fixer la date de création à maintenant
+#    data['datecreation'] = datetime.now()
+#
+#    Avis.create_from_json(data)
+#    return redirect(url_for("main.get_avis"))
+
 @main.route("/avis/ajouter", methods=["POST"])
+@login_required
 def ajouter_avis():
     data = request.form.to_dict()
-
-    # iduser et idetab sont dans data 
-    iduser = data.get("iduser")
+    iduser = current_user.iduser
     idetab = data.get("idetab")
 
-    # Vérifier si un avis existe déjà pour ce couple user+etab
+    if not idetab:
+        return "Établissement non précisé", 400
+
     ancien_avis = Avis.query.filter_by(iduser=iduser, idetab=idetab).first()
     if ancien_avis:
-        Avis.delete_by_id(ancien_avis.idav)  # Suppression de l'ancien avis
+        Avis.delete_by_id(ancien_avis.idav)
 
-     # Fixer la date de création à maintenant
+    data['iduser'] = iduser
+    data['idetab'] = idetab
     data['datecreation'] = datetime.now()
 
     Avis.create_from_json(data)
     return redirect(url_for("main.get_avis"))
+
 
 @main.route("/avis/modifier/<idav>", methods=["GET"])
 def modifier_avis_form(idav):
