@@ -4,6 +4,37 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+<style>
+  /* Styles pour la liste des établissements */
+  #results-list {
+      max-height: 300px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-left: 0;
+  }
+
+  #results-list li {
+      list-style: none;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      border: none;
+      margin-bottom: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  }
+
+  #results-list li:hover {
+      background-color: #e9f5ff;
+      box-shadow: 0 4px 8px rgb(0 123 255 / 0.2);
+  }
+
+  #results-list li .badge {
+      font-size: 0.75rem;
+      padding: 0.3em 0.6em;
+      border-radius: 0.4rem;
+  }
+</style>
 {% endblock %}
 
 {% block sidebar %}
@@ -29,7 +60,7 @@
         {% endfor %}
     </div>
 
-    <ul class="list-group mt-2" id="results-list" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;"></ul>
+    <ul class="list-group mt-2" id="results-list"></ul>
 
     <div class="accordion mt-4" id="accordionDetails" style="display: none;">
       <div class="accordion-item">
@@ -121,7 +152,7 @@
     function formatDate(dateString) {
         const d = new Date(dateString);
         const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0'); // Les mois commencent à 0
+        const month = String(d.getMonth() + 1).padStart(2, '0');
         const year = d.getFullYear();
         return `${day}/${month}/${year}`;
     }
@@ -143,8 +174,34 @@
     const categoriesList = document.getElementById('categories-list');
     let selectedEtabId = null;
 
-    // Instance unique du collapse
+    // Instance unique du collapse Bootstrap
     let collapseInstance = null;
+
+    function renderEtablissements(etablissements) {
+        resultsList.innerHTML = '';
+        if (etablissements.length === 0) {
+            resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
+            return;
+        }
+
+        etablissements.forEach(etab => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-action py-3 rounded shadow-sm mb-2';
+            li.style.cursor = 'pointer';
+
+            li.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong class="text-primary fs-5">${etab.nom}</strong>
+                    ${etab.categorie ? `<span class="badge bg-info text-dark">${etab.categorie}</span>` : ''}
+                </div>
+                <div class="text-muted small mb-1">${etab.adresse || ''} ${etab.cp ? ', ' + etab.cp : ''} ${etab.ville || ''}</div>
+                <div class="text-muted small">Tel : ${etab.tel || 'N/A'}</div>
+            `;
+
+            li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
+            resultsList.appendChild(li);
+        });
+    }
 
     function showEtablissementDetails(etab) {
         etabNom.textContent = etab.nom;
@@ -155,7 +212,6 @@
         etabSiteweb.href = etab.siteweb;
         etabDetails.style.display = 'block';
 
-        // Afficher moyenne et avis si disponibles
         fetchAvisEtablissement(etab.id);
 
         const collapseElement = document.getElementById('collapseDetails');
@@ -164,7 +220,6 @@
             collapseInstance = new bootstrap.Collapse(collapseElement, { toggle: false });
         }
 
-        // Toggle manuellement l'accordéon
         if (collapseElement.classList.contains('show')) {
             collapseInstance.hide();
         } else {
@@ -183,8 +238,6 @@
         showEtablissementDetails(etab);
         searchInput.value = etab.nom;
         resultsList.innerHTML = '';
-
-        // On ne recrée pas l'instance ici ni ne toggle à nouveau
       } catch (err) {
         alert('Erreur lors du chargement de la fiche.');
         console.error(err);
@@ -204,7 +257,6 @@
                 etabMoyenneAvis.style.display = 'block';
                 etabMoyenneAvis.textContent = `Moyenne des avis : ${moyenne.toFixed(2)} / 5 (${avis.length} avis)`;
 
-                // Remplir la liste des avis
                 avisList.innerHTML = '';
                 avis.forEach(a => {
                     const div = document.createElement('div');
@@ -243,59 +295,43 @@
 
     searchInput.addEventListener('input', async () => {
         const query = searchInput.value.trim();
-        resultsList.innerHTML = '';
         etabDetails.style.display = 'none';
         selectedEtabId = null;
 
-        if (query.length < 2) return;
+        if (query.length < 2) {
+            resultsList.innerHTML = '';
+            return;
+        }
 
         const response = await fetch(`/api/etablissements/search?q=${encodeURIComponent(query)}`);
         const etablissements = await response.json();
 
-        if (etablissements.length === 0) {
-            resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
-            return;
-        }
-
-        etablissements.forEach(etab => {
-            const li = document.createElement('li');
-            li.classList.add('list-group-item', 'list-group-item-action');
-            li.textContent = etab.nom;
-            li.style.cursor = 'pointer';
-            li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
-            resultsList.appendChild(li);
-        });
+        renderEtablissements(etablissements);
     });
 
-    // Gestion du filtrage par catégories (multi-sélection)
-    let selectedCategories = new Set(['ALL']); // par défaut "Tous"
+    let selectedCategories = new Set(['ALL']);
 
     categoriesList.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
             const category = btn.getAttribute('data-category');
 
             if (category === 'ALL') {
-                // "Tous" sélectionné : désélectionner tout sauf "ALL"
                 selectedCategories.clear();
                 selectedCategories.add('ALL');
                 categoriesList.querySelectorAll('button').forEach(b => {
                     b.classList.toggle('active', b.getAttribute('data-category') === 'ALL');
                 });
             } else {
-                // Retirer "ALL" si on sélectionne une catégorie spécifique
                 selectedCategories.delete('ALL');
 
                 if (selectedCategories.has(category)) {
-                    // Désélectionner catégorie
                     selectedCategories.delete(category);
                     btn.classList.remove('active');
                 } else {
-                    // Sélectionner catégorie
                     selectedCategories.add(category);
                     btn.classList.add('active');
                 }
 
-                // Si aucune catégorie sélectionnée, remettre "ALL"
                 if (selectedCategories.size === 0) {
                     selectedCategories.add('ALL');
                     categoriesList.querySelector('button[data-category="ALL"]').classList.add('active');
@@ -304,43 +340,37 @@
                 }
             }
 
-            // Filtrer établissements par catégorie
             resultsList.innerHTML = '';
             etabDetails.style.display = 'none';
             selectedEtabId = null;
 
-            // Construire URL pour la requête API
             let url = '/api/etablissements';
             if (!selectedCategories.has('ALL')) {
-                const params = new URLSearchParams();
-                selectedCategories.forEach(cat => params.append('categories', cat));
-                url += `?${params.toString()}`;
+                const catsParam = Array.from(selectedCategories).map(encodeURIComponent).join(',');
+                url += `?categories=${catsParam}`;
             }
 
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Erreur lors du chargement des établissements.');
-                const etablissements = await response.json();
-
-                if (etablissements.length === 0) {
-                    resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
-                    return;
-                }
-
-                etablissements.forEach(etab => {
-                    const li = document.createElement('li');
-                    li.classList.add('list-group-item', 'list-group-item-action');
-                    li.textContent = etab.nom;
-                    li.style.cursor = 'pointer';
-                    li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
-                    resultsList.appendChild(li);
-                });
-            } catch (error) {
-                console.error(error);
-                resultsList.innerHTML = '<li class="list-group-item text-danger">Erreur lors du chargement.</li>';
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Erreur chargement établissements.');
+                const etabs = await res.json();
+                renderEtablissements(etabs);
+            } catch (e) {
+                console.error(e);
             }
         });
     });
 
+    // Au chargement, affiche tous les établissements par défaut
+    (async () => {
+        try {
+            const res = await fetch('/api/etablissements');
+            if (!res.ok) throw new Error('Erreur chargement établissements.');
+            const etabs = await res.json();
+            renderEtablissements(etabs);
+        } catch (e) {
+            console.error(e);
+        }
+    })();
 </script>
 {% endblock %}
