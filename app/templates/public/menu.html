@@ -45,8 +45,9 @@
             <p id="etab-ville"></p>
             <p>Téléphone : <span id="etab-tel"></span></p>
             <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
+            {% if current_user.is_authenticated %}
             <button class="btn btn-primary w-100 mt-2" id="btn-ajouter-avis">Ajouter un avis</button>
-
+            {% endif %}
             <hr>
 
             <!-- Moyenne des avis -->
@@ -230,13 +231,15 @@
         }
     }
 
-    btnAjouterAvis.addEventListener('click', () => {
-        if (!selectedEtabId) {
-            alert('Veuillez sélectionner un établissement.');
-            return;
-        }
-        window.location.href = `/avis/ajouter?idetab=${selectedEtabId}`;
-    });
+    if (btnAjouterAvis) {
+      btnAjouterAvis.addEventListener('click', () => {
+          if (!selectedEtabId) {
+              alert('Veuillez sélectionner un établissement.');
+              return;
+          }
+          window.location.href = `/avis/ajouter?idetab=${selectedEtabId}`;
+      });
+    }
 
     searchInput.addEventListener('input', async () => {
         const query = searchInput.value.trim();
