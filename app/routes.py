@@ -11,11 +11,26 @@ def inject_user():
 # --- ETABLISSEMENTS ---
 
 # Page d'accueil affichant la carte avec tous les établissements
+#@main.route("/")
+#def home():
+#    etablissements = Etablissement.get_all_json()
+#    categories = Categorie.get_all_json_raw()
+#    return render_template("public/menu.html", etablissements=etablissements, categories=categories)
+
 @main.route("/")
 def home():
-    etablissements = Etablissement.get_all_json()
+    etablissements_raw = Etablissement.query.all()
     categories = Categorie.get_all_json_raw()
+
+    etablissements = []
+    for etab in etablissements_raw:
+        etab_dict = etab.to_dict()
+        etab_dict["moyenne"] = etab.get_average_rating()
+        etablissements.append(etab_dict)
+
     return render_template("public/menu.html", etablissements=etablissements, categories=categories)
+
+
 
 # --- Menu public ---
 @main.route('/public/menu')
@@ -125,6 +140,14 @@ def filter_etablissements():
     # On récupère les établissements filtrés
     etablissements = Etablissement.get_by_categories(categories)
     return jsonify(etablissements)
+
+#pour prendre les avis et faire moyenne utiliser pour afficher dans menu public slidbar
+@main.route("/api/avis/etablissement/<string:idetab>", methods=["GET"])
+def get_avis_et_moyenne_etab(idetab):
+    etab = Etablissement.query.get_or_404(idetab)
+    data = etab.get_avis_et_moyenne()
+    return jsonify(data)
+
 
 
 # --- UTILISATEURS ---

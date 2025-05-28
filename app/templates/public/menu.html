@@ -46,6 +46,28 @@
             <p>Téléphone : <span id="etab-tel"></span></p>
             <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
             <button class="btn btn-primary w-100 mt-2" id="btn-ajouter-avis">Ajouter un avis</button>
+
+            <hr>
+
+            <!-- Moyenne des avis -->
+            <div id="etab-moyenne-avis" class="mb-3 fw-bold" style="display:none;"></div>
+
+            <!-- Accordéon pour les avis -->
+            <div class="accordion" id="accordionAvis" style="display:none;">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="headingAvis">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAvis" aria-expanded="false" aria-controls="collapseAvis">
+                    Avis de l'établissement
+                  </button>
+                </h2>
+                <div id="collapseAvis" class="accordion-collapse collapse" aria-labelledby="headingAvis">
+                  <div class="accordion-body" id="avis-list">
+                    <!-- Avis chargés dynamiquement ici -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -95,6 +117,14 @@
 
 {% block extra_scripts %}
 <script>
+    function formatDate(dateString) {
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0'); // Les mois commencent à 0
+        const year = d.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
     const searchInput = document.getElementById('search-input');
     const resultsList = document.getElementById('results-list');
     const etabDetails = document.getElementById('accordionDetails');
@@ -104,8 +134,16 @@
     const etabTel = document.getElementById('etab-tel');
     const etabSiteweb = document.getElementById('etab-siteweb');
     const btnAjouterAvis = document.getElementById('btn-ajouter-avis');
+
+    const etabMoyenneAvis = document.getElementById('etab-moyenne-avis');
+    const accordionAvis = document.getElementById('accordionAvis');
+    const avisList = document.getElementById('avis-list');
+
     const categoriesList = document.getElementById('categories-list');
     let selectedEtabId = null;
+
+    // Instance unique du collapse
+    let collapseInstance = null;
 
     function showEtablissementDetails(etab) {
         etabNom.textContent = etab.nom;
@@ -116,8 +154,21 @@
         etabSiteweb.href = etab.siteweb;
         etabDetails.style.display = 'block';
 
+        // Afficher moyenne et avis si disponibles
+        fetchAvisEtablissement(etab.id);
+
         const collapseElement = document.getElementById('collapseDetails');
-        const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
+
+        if (!collapseInstance) {
+            collapseInstance = new bootstrap.Collapse(collapseElement, { toggle: false });
+        }
+
+        // Toggle manuellement l'accordéon
+        if (collapseElement.classList.contains('show')) {
+            collapseInstance.hide();
+        } else {
+            collapseInstance.show();
+        }
     }
 
     async function showEtablissementDetailsFromId(id) {
@@ -132,30 +183,66 @@
         searchInput.value = etab.nom;
         resultsList.innerHTML = '';
 
-        // Ouvrir la section détails si elle est fermée
-        const collapseElement = document.getElementById('collapseDetails');
-        const bsCollapse = new bootstrap.Collapse(collapseElement, { toggle: true });
+        // On ne recrée pas l'instance ici ni ne toggle à nouveau
       } catch (err) {
         alert('Erreur lors du chargement de la fiche.');
         console.error(err);
       }
     }
 
+    async function fetchAvisEtablissement(etabId) {
+        try {
+            const res = await fetch(`/api/avis/etablissement/${etabId}`);
+            if (!res.ok) throw new Error('Erreur lors du chargement des avis.');
+            const data = await res.json();
+
+            const avis = data.avis || [];
+            const moyenne = data.moyenne;
+
+            if (avis.length > 0) {
+                etabMoyenneAvis.style.display = 'block';
+                etabMoyenneAvis.textContent = `Moyenne des avis : ${moyenne.toFixed(2)} / 5 (${avis.length} avis)`;
+
+                // Remplir la liste des avis
+                avisList.innerHTML = '';
+                avis.forEach(a => {
+                    const div = document.createElement('div');
+                    div.classList.add('mb-3', 'border', 'p-2', 'rounded');
+                    div.innerHTML = `
+                      <strong>${a.username}</strong> - Note : ${a.note}/5<br>
+                      <em>${formatDate(a.datecreation)}</em>
+                      <p>${a.commentaire}</p>
+                    `;
+                    avisList.appendChild(div);
+                });
+
+                accordionAvis.style.display = 'block';
+            } else {
+                etabMoyenneAvis.style.display = 'none';
+                accordionAvis.style.display = 'none';
+                avisList.innerHTML = '';
+            }
+        } catch (error) {
+            console.error(error);
+            etabMoyenneAvis.style.display = 'none';
+            accordionAvis.style.display = 'none';
+            avisList.innerHTML = '';
+        }
+    }
 
     btnAjouterAvis.addEventListener('click', () => {
         if (!selectedEtabId) {
             alert('Veuillez sélectionner un établissement.');
             return;
         }
-        //window.location.href = `/avis/ajouter/${selectedEtabId}`;
         window.location.href = `/avis/ajouter?idetab=${selectedEtabId}`;
-
     });
 
     searchInput.addEventListener('input', async () => {
         const query = searchInput.value.trim();
         resultsList.innerHTML = '';
         etabDetails.style.display = 'none';
+        selectedEtabId = null;
 
         if (query.length < 2) return;
 
@@ -163,87 +250,96 @@
         const etablissements = await response.json();
 
         if (etablissements.length === 0) {
-            resultsList.innerHTML = '<li class="list-group-item">Aucun résultat</li>';
+            resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
             return;
         }
 
         etablissements.forEach(etab => {
             const li = document.createElement('li');
-            li.textContent = etab.nom;
             li.classList.add('list-group-item', 'list-group-item-action');
+            li.textContent = etab.nom;
             li.style.cursor = 'pointer';
-            li.style.whiteSpace = 'nowrap';
-            li.style.overflow = 'hidden';
-            li.style.textOverflow = 'ellipsis';
-            li.addEventListener('mouseenter', () => li.classList.add('active'));
-            li.addEventListener('mouseleave', () => li.classList.remove('active'));
-            li.addEventListener('click', () => {
-                selectedEtabId = etab.id;
-                showEtablissementDetails(etab);
-                resultsList.innerHTML = '';
-                searchInput.value = etab.nom;
-            });
+            li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
             resultsList.appendChild(li);
         });
     });
 
-    // Gestion des filtres par catégories
-    const categoryButtons = document.querySelectorAll('#categories-list button');
+    // Gestion du filtrage par catégories (multi-sélection)
+    let selectedCategories = new Set(['ALL']); // par défaut "Tous"
 
-    categoryButtons.forEach(btn => {
+    categoriesList.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (btn.dataset.category === "ALL") {
-                categoryButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            } else {
-                document.querySelector('#categories-list button[data-category="ALL"]').classList.remove('active');
-                btn.classList.toggle('active');
+            const category = btn.getAttribute('data-category');
 
-                const anySelected = [...categoryButtons].some(b => b.dataset.category !== "ALL" && b.classList.contains('active'));
-                if (!anySelected) {
-                    document.querySelector('#categories-list button[data-category="ALL"]').classList.add('active');
+            if (category === 'ALL') {
+                // "Tous" sélectionné : désélectionner tout sauf "ALL"
+                selectedCategories.clear();
+                selectedCategories.add('ALL');
+                categoriesList.querySelectorAll('button').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-category') === 'ALL');
+                });
+            } else {
+                // Retirer "ALL" si on sélectionne une catégorie spécifique
+                selectedCategories.delete('ALL');
+
+                if (selectedCategories.has(category)) {
+                    // Désélectionner catégorie
+                    selectedCategories.delete(category);
+                    btn.classList.remove('active');
+                } else {
+                    // Sélectionner catégorie
+                    selectedCategories.add(category);
+                    btn.classList.add('active');
+                }
+
+                // Si aucune catégorie sélectionnée, revenir à "ALL"
+                if (selectedCategories.size === 0) {
+                    selectedCategories.add('ALL');
+                    categoriesList.querySelectorAll('button').forEach(b => {
+                        b.classList.toggle('active', b.getAttribute('data-category') === 'ALL');
+                    });
+                } else {
+                    categoriesList.querySelector('button[data-category="ALL"]').classList.remove('active');
                 }
             }
-
-            const selectedCategories = [...categoryButtons]
-                .filter(b => b.dataset.category !== "ALL" && b.classList.contains('active'))
-                .map(b => b.dataset.category);
 
             resultsList.innerHTML = '';
             etabDetails.style.display = 'none';
             selectedEtabId = null;
-            searchInput.value = '';
 
-            if (selectedCategories.length === 0) return;
+            let url = '/api/etablissements';
 
-            const query = selectedCategories.map(cat => `category=${encodeURIComponent(cat)}`).join('&');
-            const response = await fetch(`/api/etablissements/filter?${query}`);
-            const etablissements = await response.json();
+            if (!selectedCategories.has('ALL')) {
+                // Passer les catégories en query string multiples
+                const params = new URLSearchParams();
+                selectedCategories.forEach(cat => params.append('categories', cat));
+                url += `/filter?${params.toString()}`;
+            }
+
+            const res = await fetch(url);
+            const etablissements = await res.json();
 
             if (etablissements.length === 0) {
-                resultsList.innerHTML = '<li class="list-group-item">Aucun résultat</li>';
+                resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
                 return;
             }
 
             etablissements.forEach(etab => {
                 const li = document.createElement('li');
-                li.textContent = etab.nom;
                 li.classList.add('list-group-item', 'list-group-item-action');
+                li.textContent = etab.nom;
                 li.style.cursor = 'pointer';
-                li.style.whiteSpace = 'nowrap';
-                li.style.overflow = 'hidden';
-                li.style.textOverflow = 'ellipsis';
-                li.addEventListener('mouseenter', () => li.classList.add('active'));
-                li.addEventListener('mouseleave', () => li.classList.remove('active'));
-                li.addEventListener('click', () => {
-                    selectedEtabId = etab.id;
-                    showEtablissementDetails(etab);
-                    resultsList.innerHTML = '';
-                    searchInput.value = etab.nom;
-                });
+                li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
                 resultsList.appendChild(li);
             });
         });
     });
+
+    // Chargement initial (sélection "Tous")
+    window.addEventListener('load', () => {
+        categoriesList.querySelector('button[data-category="ALL"]').click();
+    });
+
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 {% endblock %}

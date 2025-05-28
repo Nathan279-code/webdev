@@ -28,7 +28,7 @@ class Utilisateur(db.Model, UserMixin):
     mdpuser = db.Column(db.String(255), nullable=False)
     admin = db.Column(db.Boolean, nullable=False)
 
-    avis = db.relationship("Avis", backref="utilisateur", lazy=True)
+    avis = db.relationship("Avis", back_populates="utilisateur", lazy=True)
 
 
     def get_id(self):
@@ -124,6 +124,17 @@ class Etablissement(db.Model):
     avis = db.relationship("Avis", backref="etablissement", lazy=True)
     categories = db.relationship("Possede", back_populates="etablissement")
 
+    
+    #calcule moyenne
+    def get_average_rating(self):
+        if not self.avis:
+            return None
+        notes = [a.note for a in self.avis if a.note is not None]
+        if not notes:
+            return None
+        return round(sum(notes) / len(notes), 2)
+
+
     # Convertit l'objet Etablissement en dictionnaire (pour JSON)
     def to_dict(self):
         return {
@@ -135,6 +146,26 @@ class Etablissement(db.Model):
             "tel": self.teletab,
             "siteweb": self.sitewebetab,
             "idcat": self.idcat
+        }
+    
+    def get_avis_et_moyenne(self):
+        # Prépare la liste des avis détaillés
+        avis_list = [{
+            "idav": avis.idav,
+            "iduser": avis.iduser,
+            "note": avis.note,
+            "commentaire": avis.commentaire,
+            "datecreation": avis.datecreation.strftime("%Y-%m-%d") if avis.datecreation else None,
+            "utilisateur": avis.utilisateur.username if hasattr(avis, 'utilisateur') and avis.utilisateur else "Anonyme"
+        } for avis in self.avis]
+
+        # Calcule la moyenne (déjà fait dans get_average_rating, mais on peut refaire ici)
+        notes = [a['note'] for a in avis_list if a['note'] is not None]
+        moyenne = round(sum(notes) / len(notes), 2) if notes else None
+
+        return {
+            "avis": avis_list,
+            "moyenne": moyenne
         }
 
     # Récupère tous les établissements sous forme de liste de dictionnaires
@@ -228,10 +259,12 @@ class Etablissement(db.Model):
         results = Etablissement.query.filter(Etablissement.nometab.ilike(f'%{query}%')).all()
         return [e.to_dict() for e in results]
 
-    
     @staticmethod
     def get_by_categories(categories):
         return Etablissement.query.join(Categorie).filter(Categorie.nomcat.in_(categories)).all()
+    
+
+
 
 
 class Categorie(db.Model):
@@ -334,16 +367,20 @@ class Avis(db.Model):
     iduser = db.Column(db.String(6), db.ForeignKey("utilisateur.iduser"), nullable=False)
     idetab = db.Column(db.String(6), db.ForeignKey("etablissement.idetab"), nullable=False)
 
+    utilisateur = db.relationship("Utilisateur", back_populates="avis")
+
     # Convertit l'objet Avis en dictionnaire (pour JSON)
     def to_dict(self):
         return {
             "idav": self.idav,
             "note": self.note,
             "commentaire": self.commentaire,
-            "datecreation": self.datecreation.isoformat(),
+            "datecreation": self.datecreation.isoformat() if self.datecreation else None,
             "iduser": self.iduser,
-            "idetab": self.idetab
+            "idetab": self.idetab,
+            "username": self.utilisateur.username if self.utilisateur else None  # Ajout
         }
+
     
     # Récupère tous les avis sous forme de liste de dictionnaires
     @staticmethod
@@ -354,9 +391,9 @@ class Avis(db.Model):
             Avis.commentaire.label('commentaire'),
             Avis.datecreation.label('datecreation'),
             Avis.iduser.label('iduser'),
-            Utilisateur.username.label('nomuser'),  # Changement ici : Utilisateur.username au lieu de Utilisateur.nomuser
+            Utilisateur.username.label('username'),
             Avis.idetab.label('idetab'),
-            Etablissement.nometab.label('nometab')  # jointure avec Etablissement
+            Etablissement.nometab.label('nometab')
         ).join(Utilisateur, Avis.iduser == Utilisateur.iduser) \
         .join(Etablissement, Avis.idetab == Etablissement.idetab) \
         .all()
@@ -367,13 +404,14 @@ class Avis(db.Model):
                 "idav": avis.idav,
                 "note": avis.note,
                 "commentaire": avis.commentaire,
-                "datecreation": avis.datecreation.isoformat(),
+                "datecreation": avis.datecreation.strftime("%Y-%m-%d") if avis.datecreation else None,
                 "iduser": avis.iduser,
-                "nomuser": avis.nomuser,  # 'nomuser' fait maintenant référence à 'username'
+                "username": avis.username, 
                 "idetab": avis.idetab,
                 "nometab": avis.nometab
             })
         return result
+
 
 
     # Récupère tous les avis sous forme de liste de dictionnaires
