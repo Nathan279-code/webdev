@@ -1,0 +1,8 @@
+LIEN RENDER.COM :
+https://webdev-a1hd.onrender.com
+
+LOGINS ADMIN DE L'APP:
+username : admin mdp : admin
+
+LOGINS USER DE L'APP:
+username : public mdp public 
