@@ -36,6 +36,11 @@
       <button type="submit" class="btn btn-primary w-100 mb-3">Se connecter</button>
     </form>
 
+    <!-- Lien pour reset password -->
+    <div class="text-center mb-3">
+      <a href="{{ url_for('auth.reset_request_get') }}">Mot de passe oublié ?</a>
+    </div>
+
     <button onclick="window.location.href='/auth/register';" class="btn btn-secondary w-100">
       S'inscrire
     </button>
