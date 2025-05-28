@@ -2,6 +2,12 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import date
+from sqlalchemy.orm import joinedload
+
+@staticmethod
+def get_all_json():
+    avis_list = Avis.query.options(joinedload(Avis.utilisateur)).all()
+    return [avis.to_dict() for avis in avis_list]
 
 def generate_custom_id(model_class, prefix, id_field):
     last_item = model_class.query.order_by(getattr(model_class, id_field).desc()).first()
@@ -417,6 +423,7 @@ class Avis(db.Model):
     # Récupère tous les avis sous forme de liste de dictionnaires
     @staticmethod
     def get_all_json():
+        avis_list = Avis.query.options(joinedload(Avis.utilisateur)).all()
         return [avis.to_dict() for avis in Avis.query.all()]
 
     # Récupère un avis par son id et le retourne sous forme de dictionnaire
