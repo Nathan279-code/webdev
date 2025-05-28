@@ -3,6 +3,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import date
 from sqlalchemy.orm import joinedload
+from itsdangerous import URLSafeTimedSerializer
+
+from flask import current_app
 
 @staticmethod
 def get_all_json():
@@ -19,7 +22,7 @@ def generate_custom_id(model_class, prefix, id_field):
         return f"{prefix}0001"
     
     try:
-        last_id_num = int(last_id[1:])  # enlève le préfixe et convertit
+        last_id_num = int(last_id[1:])  # enlève préfixe et convertit
     except ValueError:
         return f"{prefix}0001"
     
@@ -93,7 +96,7 @@ class Utilisateur(db.Model, UserMixin):
         if new_password:  # ← Vérifie si non vide / non None
             user.mdpuser = generate_password_hash(new_password)
 
-        user.admin = data.get("admin") == "on"  # ✅ conversion propre pour checkbox
+        user.admin = data.get("admin") == "on"  
         db.session.commit()
         return user.to_dict()
 
@@ -113,7 +116,21 @@ class Utilisateur(db.Model, UserMixin):
             return user
         return None
     
-   
+    def get_reset_token(self, expires_sec=1800):
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.iduser})
+
+    @staticmethod
+    def verify_reset_token(token, expires_sec=1800):
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token, max_age=expires_sec)['user_id']
+        except:
+            return None
+        return Utilisateur.query.get(user_id)
+
+    
+
         
         
 

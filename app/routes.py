@@ -2,20 +2,33 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from app.models.models import Utilisateur, Etablissement, Categorie, Avis, Possede
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime
+from functools import wraps
+from flask_mail import Message
+from app import mail  # ou de ton fichier où tu initialises Flask-Mail
+from flask import current_app, url_for
+from app import db
+
+
 
 main = Blueprint('main', __name__)
 
 @main.context_processor
 def inject_user():
     return dict(current_user=current_user)
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.admin:
+            flash("Accès réservé aux administrateurs.", "error")
+            return redirect(url_for("main.menu_public"))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
 # --- ETABLISSEMENTS ---
 
-# Page d'accueil affichant la carte avec tous les établissements
-#@main.route("/")
-#def home():
-#    etablissements = Etablissement.get_all_json()
-#    categories = Categorie.get_all_json_raw()
-#    return render_template("public/menu.html", etablissements=etablissements, categories=categories)
 
 @main.route("/")
 def home():
@@ -58,6 +71,59 @@ def inject_user():
 def login():
     return render_template('auth/login.html')
 
+@auth.route('/reset_password', methods=['GET'])
+def reset_request_get():
+    return render_template('auth/reset_request.html')
+
+@auth.route('/reset_password', methods=['POST'])
+def reset_request_post():
+    email = request.form['email']
+    user = Utilisateur.query.filter_by(emailuser=email).first()
+    if user:
+        send_reset_email(user)
+    flash('Si un compte avec cet e-mail existe, un lien de réinitialisation a été envoyé.', 'info')
+    return redirect(url_for('auth.login'))
+
+@auth.route('/reset_password/<token>', methods=['GET'])
+def reset_token_get(token):
+    user = Utilisateur.verify_reset_token(token)
+    if not user:
+        flash('Ce lien de réinitialisation est invalide ou a expiré.', 'warning')
+        return redirect(url_for('auth.reset_request_get'))
+    return render_template('auth/reset_token.html')
+
+
+@auth.route('/reset_password/<token>', methods=['POST'])
+def reset_token_post(token):
+    user = Utilisateur.verify_reset_token(token)
+    if not user:
+        flash('Ce lien de réinitialisation est invalide ou a expiré.', 'warning')
+        return redirect(url_for('auth.reset_request_get'))
+
+    new_password = request.form['password']
+    user.set_password(new_password)  # Assure-toi que cette méthode existe pour modifier le mdp
+    db.session.commit()
+    flash('Ton mot de passe a été mis à jour !', 'success')
+    return redirect(url_for('auth.login'))
+
+
+
+def send_reset_email(utilisateur):
+    token = utilisateur.get_reset_token()
+    msg = Message(
+        'Réinitialisation de mot de passe',
+        sender=current_app.config['MAIL_USERNAME'],
+        recipients=[utilisateur.emailuser]
+    )
+    msg.body = f'''Pour réinitialiser ton mot de passe, clique sur le lien ci-dessous :
+{url_for('auth.reset_token_get', token=token, _external=True)}
+
+Si tu n'as pas fait cette demande, ignore ce message.
+'''
+    mail.send(msg)
+
+
+
 
 # Récupère tous les établissements (format JSON si besoin)
 #@main.route("/etablissements", methods=["GET"])
@@ -65,6 +131,8 @@ def login():
 #    return jsonify(Etablissement.get_all_json())
 
 @main.route('/etablissements')
+@login_required
+@admin_required
 def afficher_etablissements():
     etablissements = Etablissement.get_all_json_raw()
     return render_template('admin/etablissements.html', etablissements=etablissements)
@@ -79,6 +147,8 @@ def get_etablissement(idetab):
 
 # Formulaire HTML pour ajouter un établissement
 @main.route("/etablissement/ajouter", methods=["GET"])
+@login_required
+@admin_required
 def etablissement_ajouter_form():
     categories = Categorie.get_all_json_raw()
     return render_template("public/ajouter_etablissement.html", categories=categories)
@@ -94,6 +164,8 @@ def ajouter_etablissement():
 
 # Formulaire HTML de modification
 @main.route("/etablissement/modifier/<idetab>", methods=["GET"])
+@login_required
+@admin_required
 def modifier_etablissement_form(idetab):
     etab = Etablissement.query.get_or_404(idetab)
     categories = Categorie.query.all()
@@ -110,6 +182,8 @@ def modifier_etablissement(idetab):
 
 # Formulaire HTML de confirmation de suppression
 @main.route("/etablissement/supprimer/<idetab>", methods=["GET"])
+@login_required
+@admin_required
 def supprimer_etablissement_form(idetab):
     etab = Etablissement.query.get_or_404(idetab)
     return render_template("public/supprimer_etablissement.html", etab=etab)
@@ -175,17 +249,23 @@ def get_avis_et_moyenne_etab(idetab):
 
 # Affiche la liste de tous les utilisateurs
 @main.route("/utilisateurs", methods=["GET"])
+@login_required
+@admin_required
 def get_utilisateurs():
     utilisateurs = Utilisateur.get_all_json_raw()
     return render_template("admin/utilisateurs.html", utilisateurs=utilisateurs)             
 
 # Affiche un utilisateur spécifique par son identifiant
 @main.route("/utilisateur/<iduser>", methods=["GET"])
+@login_required
+@admin_required
 def get_utilisateur(iduser):
     return jsonify(Utilisateur.get_by_id_json(iduser))
 
 # Affiche le formulaire pour ajouter un nouvel utilisateur
 @main.route("/utilisateur/ajouter", methods=["GET"])
+@login_required
+@admin_required
 def utilisateur_ajouter_form():
     return render_template("public/ajouter_utilisateur.html")
 
@@ -198,6 +278,8 @@ def ajouter_utilisateur():
 
 # Affiche le formulaire pour modifier un utilisateur existant
 @main.route("/utilisateur/modifier/<iduser>", methods=["GET"])
+@login_required
+@admin_required
 def utilisateur_modifier_form(iduser):
     utilisateur = Utilisateur.get_by_id_json(iduser)
     return render_template("public/modifier_utilisateur.html", utilisateur=utilisateur)
@@ -210,7 +292,9 @@ def modifier_utilisateur(iduser):
     return redirect(url_for("main.get_utilisateurs"))
 
 # Affiche la page de confirmation pour supprimer un utilisateur                        FAUT RENVOYER SUR UNE PAGE
-@main.route("/utilisateur/supprimer/<iduser>", methods=["GET"])                         
+@main.route("/utilisateur/supprimer/<iduser>", methods=["GET"])
+@login_required
+@admin_required                         
 def utilisateur_supprimer_form(iduser):
     utilisateur = Utilisateur.get_by_id_json(iduser)
     return render_template("public/supprimer_utilisateur.html", utilisateur=utilisateur)
@@ -258,16 +342,16 @@ def register_post():
 
     # Vérifications pour username et email déjà pris
     if Utilisateur.query.filter_by(username=data.get('username')).first():
-        flash("Nom d'utilisateur déjà pris.", "error")
+        flash("Nom d'utilisateur déjà pris.")
         return render_template('auth/register.html')
 
     if Utilisateur.query.filter_by(emailuser=data.get('emailuser')).first():
-        flash("Email déjà utilisé.", "error")
+        flash("Email déjà utilisé.")
         return render_template('auth/register.html')
 
     # Création utilisateur
     Utilisateur.create_from_json(data)
-    flash("Inscription réussie, veuillez vous connecter.", "success")
+    flash("Inscription réussie, veuillez vous connecter.")
     return redirect(url_for('auth.login'))
 
 
@@ -279,6 +363,8 @@ def register_post():
 #    return jsonify(Categorie.get_all_json())
 
 @main.route("/categories", methods=["GET"])
+@login_required
+@admin_required
 def get_categories():
     categories = Categorie.get_all_json_raw()
     return render_template("admin/categorie.html", categorie=categories)     
@@ -290,6 +376,8 @@ def get_categorie(idcat):
 
 # Affiche le formulaire pour ajouter une nouvelle catégorie
 @main.route("/categorie/ajouter", methods=["GET"])
+@login_required
+@admin_required
 def categorie_ajouter_form():
     return render_template("public/ajouter_categorie.html")
 
@@ -302,6 +390,8 @@ def ajouter_categorie():
 
 # Affiche le formulaire pour modifier une catégorie existante
 @main.route("/categorie/modifier/<idcat>", methods=["GET"])
+@login_required
+@admin_required
 def categorie_modifier_form(idcat):
     categorie = Categorie.get_by_id_json(idcat)
     return render_template("public/modifier_categorie.html", categorie=categorie)
@@ -315,6 +405,8 @@ def modifier_categorie(idcat):
 
 # Affiche la page de confirmation pour supprimer une catégorie
 @main.route("/categorie/supprimer/<idcat>", methods=["GET"])
+@login_required
+@admin_required
 def categorie_supprimer_form(idcat):
     categorie = Categorie.get_by_id_json(idcat)
     return render_template("public/supprimer_categorie.html", categorie=categorie)
@@ -329,6 +421,8 @@ def supprimer_categorie(idcat):
 # --- AVIS ---
 
 @main.route("/avis", methods=["GET"])
+@login_required
+@admin_required
 def get_avis():
     avis = Avis.get_all_json_raw()
     return render_template("admin/avis.html", avis=avis) 
@@ -365,11 +459,10 @@ def ajouter_avis_form():
                            utilisateur=utilisateur,
                            etablissement=etablissement)
 
-
-
 # --- Route admin ---
 @main.route("/admin/avis/ajouter", methods=["GET"])
 @login_required
+@admin_required
 def ajouter_avis_form_admin():
     if not current_user.admin:  #méthode pour vérif admin
         return "Accès refusé", 403
@@ -411,6 +504,8 @@ def ajouter_avis():
 
 
 @main.route("/avis/modifier/<idav>", methods=["GET"])
+@login_required
+@admin_required
 def modifier_avis_form(idav):
     avis = Avis.query.get_or_404(idav)  
     utilisateur = avis.utilisateur      
@@ -430,6 +525,8 @@ def modifier_avis(idav):
 
 # Supprime un avis via son identifiant (méthode DELETE)
 @main.route("/avis/supprimer/<idav>", methods=["GET"])
+@login_required
+@admin_required
 def supprimer_avis_form(idav):
     avis = Avis.get_by_id_json(idav)
     return render_template('public/supprimer_avis.html', avis=avis)
@@ -444,17 +541,23 @@ def supprimer_avis(idav):
 
 # Récupère la liste de toutes les relations Possede (format JSON)
 @main.route("/possede", methods=["GET"])
+@login_required
+@admin_required
 def get_possedes():
     possedes = Possede.get_all_json_raw()
     return render_template("admin/possede.html", possede=possedes)
 
 # Récupère une relation Possede par idcat et idetab (format JSON)
 @main.route("/possede/<idcat>/<idetab>", methods=["GET"])
+@login_required
+@admin_required
 def get_possede(idcat, idetab):
     return jsonify(Possede.get_by_id_json(idcat, idetab))
 
 # Affiche le formulaire pour ajouter une nouvelle relation Possede
 @main.route("/possede/ajouter", methods=["GET"])
+@login_required
+@admin_required
 def possede_ajouter_form():
     categories = Categorie.get_all_json()  # Liste des catégories
     etablissements = Etablissement.get_all_json()  # Liste des établissements
@@ -469,6 +572,8 @@ def ajouter_possede():
 
 # Affiche le formulaire de confirmation pour supprimer une relation Possede
 @main.route("/possede/supprimer/<idcat>/<idetab>", methods=["GET"])
+@login_required
+@admin_required
 def possede_supprimer_form(idcat, idetab):
     possede = Possede.get_by_id_json(idcat, idetab)  # Récupère la relation à supprimer
     return render_template("public/supprimer_possede.html", possede=possede)
@@ -486,6 +591,8 @@ def supprimer_possede_json(idcat, idetab):
 
 # Affiche le formulaire pour modifier une relation Possede
 @main.route("/possede/modifier/<idcat>/<idetab>", methods=["GET"])
+@login_required
+@admin_required
 def possede_modifier_form(idcat, idetab):
     possede = Possede.get_by_id_json(idcat, idetab)  # Récupère la relation à modifier
     categories = Categorie.get_all_json()  # Liste des catégories

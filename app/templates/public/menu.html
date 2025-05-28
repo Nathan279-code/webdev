@@ -3,10 +3,11 @@
 {% block title %}Menu Public{% endblock %}
 
 {% block extra_head %}
+<!-- Importation des styles pour la carte Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 
 <style>
-  /* Styles pour la liste des établissements */
+  /* Styles personnalisés pour la liste des établissements */
   #results-list {
       max-height: 300px;
       overflow-y: auto;
@@ -38,10 +39,13 @@
 {% endblock %}
 
 {% block sidebar %}
+<!-- Barre latérale contenant la recherche et les filtres -->
 <nav class="bg-light border-end d-flex flex-column p-3" style="width: 300px; min-height: 100vh; padding-left: 3rem;">
-  <!-- Contenu scrollable -->
+
+  <!-- Contenu principal de la sidebar -->
   <div style="flex-grow: 1; overflow-y: auto; padding-right: 1rem;">
     <h4>Recherche d'établissement</h4>
+    <!-- Champ de recherche -->
     <input
         type="text"
         id="search-input"
@@ -50,18 +54,23 @@
         autocomplete="off"
     />
 
+    <!-- Filtres par catégorie -->
     <h5 class="mt-3">Catégories</h5>
     <div id="categories-list" class="d-flex overflow-auto flex-row gap-2 pb-2" style="white-space: nowrap;">
+        <!-- Bouton pour afficher tous les établissements -->
         <button type="button" class="btn btn-sm btn-outline-secondary active" data-category="ALL">Tous</button>
         {% for cat in categories %}
+            <!-- Boutons dynamiques selon les catégories -->
             <button type="button" class="btn btn-sm btn-outline-primary" data-category="{{ cat.nomcat }}">
                 {{ cat.nomcat }}
             </button>
         {% endfor %}
     </div>
 
+    <!-- Liste des résultats -->
     <ul class="list-group mt-2" id="results-list"></ul>
 
+    <!-- Accordéon contenant les détails d’un établissement sélectionné -->
     <div class="accordion mt-4" id="accordionDetails" style="display: none;">
       <div class="accordion-item">
         <h2 class="accordion-header" id="headingDetails">
@@ -71,20 +80,23 @@
         </h2>
         <div id="collapseDetails" class="accordion-collapse collapse" aria-labelledby="headingDetails">
           <div class="accordion-body">
+            <!-- Informations de l’établissement -->
             <h5 id="etab-nom"></h5>
             <p id="etab-adresse"></p>
             <p id="etab-ville"></p>
             <p>Téléphone : <span id="etab-tel"></span></p>
             <p>Site web : <a href="#" target="_blank" id="etab-siteweb"></a></p>
+
+            <!-- Bouton pour ajouter un avis (utilisateur connecté uniquement) -->
             {% if current_user.is_authenticated %}
             <button class="btn btn-primary w-100 mt-2" id="btn-ajouter-avis">Ajouter un avis</button>
             {% endif %}
             <hr>
 
-            <!-- Moyenne des avis -->
+            <!-- Affichage de la moyenne des avis -->
             <div id="etab-moyenne-avis" class="mb-3 fw-bold" style="display:none;"></div>
 
-            <!-- Accordéon pour les avis -->
+            <!-- Accordéon pour les avis utilisateurs -->
             <div class="accordion" id="accordionAvis" style="display:none;">
               <div class="accordion-item">
                 <h2 class="accordion-header" id="headingAvis">
@@ -94,7 +106,7 @@
                 </h2>
                 <div id="collapseAvis" class="accordion-collapse collapse" aria-labelledby="headingAvis">
                   <div class="accordion-body" id="avis-list">
-                    <!-- Avis chargés dynamiquement ici -->
+                    <!-- Avis affichés dynamiquement ici -->
                   </div>
                 </div>
               </div>
@@ -106,7 +118,7 @@
     </div>
   </div>
 
-  <!-- Zone fixe en bas -->
+  <!-- Zone d'information ou actions utilisateur (bas de sidebar) -->
   <div style="flex-shrink: 0;">
       {% if current_user.is_authenticated %}
         <div class="mb-2 text-center">
@@ -119,15 +131,18 @@
         </div>
 
         {% if current_user.admin %}
+          <!-- Accès admin -->
           <a href="{{ url_for('main.menu') }}" class="btn btn-warning w-100 mb-2">
             <i class="bi bi-speedometer2"></i> Menu Admin
           </a>
         {% endif %}
 
+        <!-- Déconnexion -->
         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger w-100">
           <i class="bi bi-box-arrow-right"></i> Déconnexion
         </a>
       {% else %}
+        <!-- Lien pour login ou inscription si utilisateur non connecté -->
         <div class="d-flex flex-column gap-2">
           <a href="{{ url_for('auth.login') }}" class="btn btn-success w-100">
             <i class="bi bi-box-arrow-in-right"></i> Se connecter
@@ -142,6 +157,7 @@
 {% endblock %}
 
 {% block content %}
+<!-- Contenu principal avec la carte -->
 <main class="flex-grow-1 p-0" style="height: 100vh; overflow: hidden;">
     {% include 'public/map.html' %}
 </main>
@@ -149,6 +165,7 @@
 
 {% block extra_scripts %}
 <script>
+    // Formatage de date pour les avis
     function formatDate(dateString) {
         const d = new Date(dateString);
         const day = String(d.getDate()).padStart(2, '0');
@@ -157,6 +174,7 @@
         return `${day}/${month}/${year}`;
     }
 
+    // Références aux éléments DOM
     const searchInput = document.getElementById('search-input');
     const resultsList = document.getElementById('results-list');
     const etabDetails = document.getElementById('accordionDetails');
@@ -174,9 +192,10 @@
     const categoriesList = document.getElementById('categories-list');
     let selectedEtabId = null;
 
-    // Instance unique du collapse Bootstrap
+    // Pour gérer l'état du collapse Bootstrap
     let collapseInstance = null;
 
+    // Affiche les établissements dans la liste
     function renderEtablissements(etablissements) {
         resultsList.innerHTML = '';
         if (etablissements.length === 0) {
@@ -203,6 +222,7 @@
         });
     }
 
+    // Affiche les détails d’un établissement
     function showEtablissementDetails(etab) {
         etabNom.textContent = etab.nom;
         etabAdresse.textContent = `Adresse : ${etab.adresse}`;
@@ -227,6 +247,7 @@
         }
     }
 
+    // Charge un établissement via son ID
     async function showEtablissementDetailsFromId(id) {
       try {
         const res = await fetch(`/etablissement/${id}`);
@@ -244,6 +265,7 @@
       }
     }
 
+    // Récupère et affiche les avis pour un établissement
     async function fetchAvisEtablissement(etabId) {
         try {
             const res = await fetch(`/api/avis/etablissement/${etabId}`);
@@ -283,6 +305,7 @@
         }
     }
 
+    // Redirection vers le formulaire d'ajout d'avis
     if (btnAjouterAvis) {
       btnAjouterAvis.addEventListener('click', () => {
           if (!selectedEtabId) {
@@ -293,6 +316,7 @@
       });
     }
 
+    // Recherche d’établissement en temps réel
     searchInput.addEventListener('input', async () => {
         const query = searchInput.value.trim();
         etabDetails.style.display = 'none';
@@ -309,6 +333,7 @@
         renderEtablissements(etablissements);
     });
 
+    // Gestion du filtrage par catégories
     let selectedCategories = new Set(['ALL']);
 
     categoriesList.querySelectorAll('button').forEach(btn => {
@@ -361,7 +386,7 @@
         });
     });
 
-    // Au chargement, affiche tous les établissements par défaut
+    // Chargement initial des établissements au démarrage
     (async () => {
         try {
             const res = await fetch('/api/etablissements');
