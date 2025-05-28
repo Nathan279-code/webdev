@@ -131,15 +131,31 @@ def search_etablissements():
 def api_etablissements():
     return jsonify(Etablissement.get_all_json())  # ou get_all_json_raw() si c'est mieux
 
+#@main.route('/api/etablissements/filter')
+#def filter_etablissements():
+#    # On récupère la liste des catégories (peut être plusieurs)
+#    categories = request.args.getlist('category')
+#    if not categories:
+#        return jsonify([])
+#    # On récupère les établissements filtrés
+#    etablissements = Etablissement.get_by_categories(categories)
+#    return jsonify(etablissements)
+
 @main.route('/api/etablissements/filter')
 def filter_etablissements():
     # On récupère la liste des catégories (peut être plusieurs)
-    categories = request.args.getlist('category')
+    categories = request.args.getlist('categories')
     if not categories:
         return jsonify([])
-    # On récupère les établissements filtrés
+
+    # On récupère les établissements filtrés (ceci renvoie des objets Etablissement)
     etablissements = Etablissement.get_by_categories(categories)
-    return jsonify(etablissements)
+    
+    # IMPORTANT : convertir en liste de dictionnaires via to_dict()
+    result = [etab.to_dict() for etab in etablissements]
+    
+    return jsonify(result)
+
 
 #pour prendre les avis et faire moyenne utiliser pour afficher dans menu public slidbar
 @main.route("/api/avis/etablissement/<string:idetab>", methods=["GET"])

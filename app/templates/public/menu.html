@@ -295,54 +295,52 @@
                     btn.classList.add('active');
                 }
 
-                // Si aucune catégorie sélectionnée, revenir à "ALL"
+                // Si aucune catégorie sélectionnée, remettre "ALL"
                 if (selectedCategories.size === 0) {
                     selectedCategories.add('ALL');
-                    categoriesList.querySelectorAll('button').forEach(b => {
-                        b.classList.toggle('active', b.getAttribute('data-category') === 'ALL');
-                    });
+                    categoriesList.querySelector('button[data-category="ALL"]').classList.add('active');
                 } else {
                     categoriesList.querySelector('button[data-category="ALL"]').classList.remove('active');
                 }
             }
 
+            // Filtrer établissements par catégorie
             resultsList.innerHTML = '';
             etabDetails.style.display = 'none';
             selectedEtabId = null;
 
+            // Construire URL pour la requête API
             let url = '/api/etablissements';
-
             if (!selectedCategories.has('ALL')) {
-                // Passer les catégories en query string multiples
                 const params = new URLSearchParams();
                 selectedCategories.forEach(cat => params.append('categories', cat));
-                url += `/filter?${params.toString()}`;
+                url += `?${params.toString()}`;
             }
 
-            const res = await fetch(url);
-            const etablissements = await res.json();
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Erreur lors du chargement des établissements.');
+                const etablissements = await response.json();
 
-            if (etablissements.length === 0) {
-                resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
-                return;
+                if (etablissements.length === 0) {
+                    resultsList.innerHTML = '<li class="list-group-item">Aucun établissement trouvé.</li>';
+                    return;
+                }
+
+                etablissements.forEach(etab => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'list-group-item-action');
+                    li.textContent = etab.nom;
+                    li.style.cursor = 'pointer';
+                    li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
+                    resultsList.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                resultsList.innerHTML = '<li class="list-group-item text-danger">Erreur lors du chargement.</li>';
             }
-
-            etablissements.forEach(etab => {
-                const li = document.createElement('li');
-                li.classList.add('list-group-item', 'list-group-item-action');
-                li.textContent = etab.nom;
-                li.style.cursor = 'pointer';
-                li.addEventListener('click', () => showEtablissementDetailsFromId(etab.id));
-                resultsList.appendChild(li);
-            });
         });
     });
 
-    // Chargement initial (sélection "Tous")
-    window.addEventListener('load', () => {
-        categoriesList.querySelector('button[data-category="ALL"]').click();
-    });
-
 </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 {% endblock %}

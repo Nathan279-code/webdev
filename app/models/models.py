@@ -268,6 +268,7 @@ class Etablissement(db.Model):
     @staticmethod
     def get_by_categories(categories):
         return Etablissement.query.join(Categorie).filter(Categorie.nomcat.in_(categories)).all()
+
     
 
 
