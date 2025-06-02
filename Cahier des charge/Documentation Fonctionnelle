@@ -1,0 +1,76 @@
+Tony Fournet , Nathan Vachin
+DOCUMENTATION FONCTIONNELLE
+1. Présentation du projet
+Le projet est une application web moderne dédiée à la gestion et à la consultation d’établissements (restaurants, commerces, services, etc.). Elle offre une interface pour les utilisateurs afin de rechercher et filtrer facilement les établissements selon plusieurs critères, de consulter leurs informations détaillées, et de lire ou laisser des avis. Une interface d’administration complète permet de gérer l’ensemble des données.
+L’objectif principal est de fournir une plateforme centralisée, facile d’accès, avec une cartographie interactive pour visualiser la localisation des établissements.
+________________________________________
+2. Objectifs
+•	Faciliter la recherche et la découverte d’établissements grâce à un système de recherche instantanée et à des filtres dynamiques.
+•	Permettre aux utilisateurs connectés de laisser des avis, améliorant ainsi la qualité et la fiabilité des informations.
+•	Offrir une interface administrateur complète, sécurisée et intuitive pour gérer les établissements, les utilisateurs, les catégories et les avis.
+•	Visualiser les établissements sur une carte interactive, offrant une expérience utilisateur enrichie et une meilleure géolocalisation.
+•	Garantir la sécurité des données via un système d’authentification et de gestion des droits d’accès différenciés.
+________________________________________
+3. Utilisateurs
+3.1 Utilisateur non connecté
+•	Peut consulter la liste des établissements.
+•	Peut effectuer des recherches par nom.
+•	Peut filtrer les établissements par catégorie.
+•	Peut consulter les détails d’un établissement (adresse, téléphone, site web).
+•	Peut lire les avis et voir la note moyenne.
+•	Ne peut pas laisser d’avis ni modifier les données.
+3.2 Utilisateur connecté
+•	Accède à toutes les fonctionnalités de l’utilisateur non connecté.
+•	Peut ajouter un avis via un formulaire sur la fiche établissement.
+•	Peut modifier ou supprimer ses propres avis (optionnel selon les règles).
+3.3 Administrateur
+•	Accès complet au back-office via un menu dédié.
+•	Peut ajouter, modifier, supprimer des établissements.
+•	Peut gérer les utilisateurs (création, modification des droits, suppression).
+•	Peut créer et modifier les catégories.
+•	Peut gérer tous les avis (validation, suppression).
+•	Peut gérer les relations « Possède » liant établissements à d’autres entités (par exemple des équipements ou services spécifiques).
+•	Dispose d’outils pour superviser l’activité et la modération.
+________________________________________
+4. Fonctionnalités principales
+4.1 Pour tous les utilisateurs (public)
+•	Recherche instantanée : dès la saisie dans le champ de recherche, les résultats s’actualisent dynamiquement.
+•	Filtrage avancé : possibilité de sélectionner plusieurs catégories simultanément pour affiner les résultats.
+•	Liste d’établissements : affichage clair avec nom, catégorie, note moyenne, résumé.
+•	Détail d’établissement : informations complètes incluant adresse, coordonnées, horaires, site web, description.
+•	Affichage des avis : liste des avis utilisateurs avec notes, commentaires, date.
+•	Carte interactive : géolocalisation des établissements avec possibilité de cliquer pour afficher les détails.
+4.2 Pour les utilisateurs connectés
+•	Ajout d’un avis : formulaire simple avec notation et commentaire, validé et enregistré dans la base.
+•	Modification/Suppression d’avis (si implémenté) : gestion de leurs propres contributions.
+•	Accès personnalisé : affichage de leur profil et historique d’avis.
+4.3 Pour les administrateurs
+•	Gestion complète des établissements : interface CRUD (Créer, Lire, Mettre à jour, Supprimer).
+•	Gestion des utilisateurs : visualisation des comptes, attribution des rôles, blocage si nécessaire.
+•	Gestion des catégories : création, modification, suppression.
+•	Gestion des avis : modération, validation ou suppression d’avis inappropriés.
+•	Gestion des relations « Possède » : création et modification des liens entre établissements et entités associées.
+•	Tableau de bord : synthèse des statistiques (nombre d’établissements, avis, utilisateurs actifs, etc.).
+________________________________________
+5. Navigation et ergonomie
+•	Interface claire et responsive adaptée aux mobiles et tablettes.
+•	Barre latérale fixe contenant les options de recherche, filtres par catégories, et accès utilisateur.
+•	Carte interactive en plein écran offrant une vue géographique globale des établissements.
+•	Panneaux accordéon (collapse Bootstrap) pour afficher ou masquer les détails et les avis sans surcharger l’écran.
+•	Boutons d’action bien visibles (ajout d’avis, déconnexion).
+•	Feedback utilisateur via notifications ou alertes après actions (ex. avis ajouté, erreur).
+________________________________________
+6. Sécurité
+•	Authentification obligatoire pour accéder aux fonctionnalités réservées (ajout d’avis, interface admin).
+•	Gestion des sessions sécurisées via Flask-Login.
+•	Gestion des rôles pour différencier clairement les droits d’accès (utilisateur vs admin).
+•	Validation côté serveur des données envoyées (formulaires, requêtes API).
+•	Protection contre les attaques courantes (CSRF, injection SQL, XSS).
+•	Utilisation de variables d’environnement pour sécuriser les clés, mots de passe et paramètres sensibles.
+________________________________________
+7. Déploiement
+•	Code source hébergé sur GitHub, facilitant la gestion de versions.
+•	Déploiement continu automatisé sur Render.com, avec intégration des builds et tests.
+•	Configuration via variables d’environnement pour adapter la base de données, clés secrètes, etc.
+•	Maintenance simplifiée grâce au monitoring Render et aux logs accessibles.
+•	Support possible pour les mises à jour sans interruption grâce à l’infrastructure cloud.
