@@ -1,1 +1,140 @@
+Tony Fournet, Nathan Vachin
+DOCUMENTATION TECHNIQUE
+
+1. Architecture générale
+---------------------------------------------------------------------------------------------------------------
+- Backend : Application web développée avec Flask (Python), un micro-framework léger permettant de créer des applications web avec une architecture claire, modulaire et extensible.
+- Frontend : Combinaison de templates Jinja2 (intégrés à Flask) pour générer du HTML côté serveur, enrichis avec Bootstrap 5 pour le design responsif et un style moderne. Du JavaScript vanilla est utilisé pour les interactions dynamiques (ex: fetch API).
+- Cartographie : Intégration de Leaflet.js, une bibliothèque JavaScript open-source, pour afficher les établissements sur une carte interactive avec gestion des marqueurs.
+- Base de données : Utilisation de SQLAlchemy ORM pour gérer la persistance des données. Le choix du SGBD est flexible (SQLite en développement, PostgreSQL en production).
+- API REST : L’application expose des points d’API REST pour des requêtes asynchrones (fetch). Ces API permettent notamment la recherche, le filtrage, la récupération des détails et des avis.
+- Authentification & Sécurité : Gestion des sessions et droits via Flask-Login permettant la différenciation des rôles (utilisateur simple vs administrateur).
+- Déploiement : Hébergement continu sur Render.com, avec synchronisation sur un dépôt GitHub. Le déploiement est automatisé (CI/CD) avec des variables d’environnement sécurisées.
+
+2. Structure des templates (Frontend)
+---------------------------------------------------------------------------------------------------------------
+- base.html
+  Template racine définissant la structure HTML commune à toutes les pages (head, navigation, footer, scripts).
+  - Inclut les liens vers Bootstrap CSS/JS, Leaflet, icônes (Bootstrap Icons).
+  - Définit des blocs (title, sidebar, content, extra_scripts) pour les pages filles.
+
+- menu_public.html
+  Hérite de base.html, contient la barre latérale avec recherche et filtres, et la carte interactive en plein écran.
+  - Recherche instantanée via input text.
+  - Boutons toggle pour filtrer par catégories.
+  - Section de résultats dynamiques.
+  - Contient les scripts JS qui gèrent l’interaction carte + recherche + affichage détails.
+
+- menu_admin.html
+  Interface dédiée aux administrateurs avec menu vertical fixe à gauche, proposant les liens vers les différentes sections d’administration : établissements, utilisateurs, catégories, avis, relations.
+  - Bouton de déconnexion.
+  - Intégration Bootstrap pour le style et la mise en page.
+-Méthodes CRUD :
+Pour ajouter , modifier , supprimer pour chaque class.
+
+3. Fonctionnalités Front-End détaillées
+---------------------------------------------------------------------------------------------------------------
+- Recherche en temps réel
+  - Champ input dans la sidebar qui déclenche des requêtes AJAX (fetch) à l’endpoint /api/etablissements/search?q=.
+  - Résultats mis à jour dynamiquement sous le champ.
+
+- Filtrage par catégories
+  - Liste de boutons toggle correspondant aux catégories disponibles.
+  - Clic sur un bouton filtre les résultats en combinant la recherche texte et catégories sélectionnées.
+
+- Liste dynamique des établissements
+  - Résultats affichés sous forme de liste cliquable.
+  - Sélection d’un établissement charge ses détails via fetch.
+
+- Affichage des détails
+  - Détails (adresse, téléphone, site web, description) chargés via /etablissement/<id> en JSON.
+  - Utilisation de Bootstrap Collapse pour afficher/masquer les sections (infos, avis).
+
+- Gestion des avis
+  - Avis récupérés via /api/avis/etablissement/<id> (liste + note moyenne).
+  - Formulaire d’ajout d’avis accessible aux utilisateurs connectés.
+  - Interface intuitive avec validation client avant envoi.
+
+- Carte interactive Leaflet
+  - Affiche tous les établissements géolocalisés sous forme de marqueurs.
+  - Clic sur un marqueur affiche un popup avec infos rapides et lien vers la fiche détaillée.
+  - Carte responsive, zoom et déplacement fluide.
+
+4. Fonctionnalités Back-End détaillées
+---------------------------------------------------------------------------------------------------------------
+- API REST
+  - /api/etablissements : Retourne la liste complète, supporte filtres (catégories, texte).
+  - /api/etablissements/search : Recherche par mots-clés dans le nom ou la description.
+  - /etablissement/<id> : Retourne les détails complets d’un établissement sous forme JSON.
+  - /api/avis/etablissement/<id> : Retourne les avis associés à un établissement, avec calcul de la note moyenne.
+  - Endpoints sécurisés pour modification (admin uniquement).
+
+- Authentification & gestion des sessions
+  - Utilisation de Flask-Login pour gérer l’authentification, sessions et permissions.
+  - Pages accessibles uniquement après authentification (ex: interface admin).
+  - Gestion des rôles : utilisateur simple / administrateur.
+
+- Gestion des données
+  - ORM SQLAlchemy avec modèles :
+    - Utilisateur : informations utilisateur, rôle, mot de passe hashé.
+    - Etablissement : nom, adresse, coordonnées GPS, téléphone, site web, description, catégorie.
+    - Categorie : nom et description.
+    - Avis : note, commentaire, date, utilisateur, établissement.
+    - Possede : relation entre établissement et d’autres entités (liens métiers).
+  - Utilisation de migrations (Flask-Migrate ou Alembic) pour gérer l’évolution du schéma.
+
+- Validation & Sécurité
+  - Validation côté serveur des données reçues via formulaire et API.
+  - Protection CSRF avec Flask-WTF.
+  - Gestion des erreurs propre avec messages utilisateurs clairs.
+
+5. Gestion des données & modèles
+---------------------------------------------------------------------------------------------------------------
+- Modèles clés
+  - Utilisateur : id, email, password_hash, role (admin/utilisateur), date création.
+  - Etablissement : id, nom, adresse, latitude, longitude, téléphone, site, catégorie_id, description.
+  - Categorie : id, nom, description.
+  - Avis : id, utilisateur_id, etablissement_id, note (int 1-5), commentaire, date.
+  - Possede : id, etablissement_id, autre_entite_id (selon cas d’usage métier).
+
+- Relations entre modèles
+  - Un établissement appartient à une catégorie.
+  - Un utilisateur peut avoir plusieurs avis.
+  - Un établissement peut avoir plusieurs avis.
+  - Relations supplémentaires via Possede pour la modélisation métier.
+
+6. Déploiement
+---------------------------------------------------------------------------------------------------------------
+- Gestion du code
+  - Code versionné sur GitHub avec branches principales (main/dev).
+  - Documentation, README, et fichiers de configuration dans le repo.
+
+- Hébergement
+  - Render.com utilisé pour le déploiement continu.
+  - Configuration des services (web, base de données).
+  - Variables d’environnement pour sécuriser les secrets (ex: clé API, connexion base).
+  - Build automatique sur push GitHub.
+
+- Maintenance
+  - Logs accessibles via Render.
+  - Monitoring de la santé de l’application.
+  - Possibilité de rollback sur version antérieure.
+
+7. Outils & Librairies utilisées
+---------------------------------------------------------------------------------------------------------------
+- Backend
+  - Flask (micro-framework Python)
+  - Flask-Login (gestion d’authentification)
+  - Flask-WTF (formulaires et protection CSRF)
+  - SQLAlchemy (ORM relationnel)
+  - Alembic/Flask-Migrate (migrations base de données)
+  
+- Frontend
+  - Bootstrap 5 (CSS & JS pour design responsive)
+  - Leaflet.js (cartographie interactive)
+  - Vanilla JavaScript (fetch API, gestion DOM)
+
+- Déploiement
+  - GitHub (gestion de version)
+  - Render.com (hébergement & CI/CD)
 
